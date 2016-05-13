@@ -1,0 +1,18 @@
+<div class="row" ng-show="isLoggedIn">
+	<h2>Welcome {{ user.username }}</h2>
+	<hr>
+	<h3>Add a task to process</h3>
+	<form>
+		<div class="form-group">
+			<input type="text" class="form-control" placeholder="Task name" ng-model="task.name"><br>
+			<input type="text" class="form-control" placeholder="Output (avi, mp4, mkv...)" ng-model="task.output"><br>
+			<input type="text" class="form-control" placeholder="Task name" ng-model="task.name"><br>
+
+			<button type="submit" class="btn btn-success">Convert</button>
+		</div>
+	</form>
+</div>
+
+<div class="row" ng-hide="isLoggedIn">
+	<h2>Please Login or Register</h2>
+</div>

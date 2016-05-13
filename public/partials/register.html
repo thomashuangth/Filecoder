@@ -1,0 +1,15 @@
+<div class="row">
+	<h2>Register</h2>
+	<form>
+		<div class="form-group">
+			<input type="email" class="form-control" placeholder="Email" ng-model="user.email"><br>
+			<input type="password" class="form-control" placeholder="Password" ng-model="user.password"><br>
+
+			<button type="submit" class="btn btn-success" ng-click="createUser()">Register</button>
+			<h3>Login or Register with:</h3>
+
+        	<a  class="btn btn-primary" ng-click="popupWindow('auth/facebook', 'Facebook Connect', 800, 800);"><span class="fa fa-facebook"></span> Facebook</a>
+			<a  class="btn btn-danger" ng-click="popupWindow('auth/google', 'Facebook Connect', 800, 800);"><span class="fa fa-google-plus"></span> Google</a>
+		</div>
+	</form>
+</div>
