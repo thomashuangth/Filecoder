@@ -1,16 +1,33 @@
 <div class="row" ng-show="isLoggedIn">
-	<h2>Welcome {{ user.username }}</h2>
+	<h2>Welcome {{user.username ? user.username : user.email }}</h2>
 	<hr>
 	<h3>Add a task to process</h3>
-	<form>
+	<form ng-controller="taskController as up" name="up.upload_form">
 		<div class="form-group">
 			<input type="text" class="form-control" placeholder="Task name" ng-model="task.name"><br>
 			<input type="text" class="form-control" placeholder="Output (avi, mp4, mkv...)" ng-model="task.output"><br>
-			<input type="text" class="form-control" placeholder="Task name" ng-model="task.name"><br>
+			<input type="file" ngf-select ng-model="up.file" name="file" nfg-pattern="'video/*'" accept="video/*" nfg-max-size="20MB">
+			Video preview: <img style="width:100px;" ngf-thumbnail="up.file || '/thumb.jpg'"/>
+            <i ng-show="up.upload_form.file.$error.required">*required</i><br>
+            <i ng-show="up.upload_form.file.$error.maxSize">File too large 
+            {{ up.file.size / 1000000|number:1 }}MB: max 20M</i>
+            <p>{{ up.progress }}</p>
 
-			<button type="submit" class="btn btn-success">Convert</button>
+			<button type="submit" class="btn btn-success" ng-click="createTask()">Convert</button>
 		</div>
 	</form>
+	<hr>
+	<h3>Your Tasks</h3>
+	<div ng-repeat="task in tasks">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<h3 class="panel-title">{{ task.name }}</h3>
+				</div>
+				<div class="panel-body">
+				Output : {{ task.output }}
+			</div>
+		</div>
+	</div>
 </div>
 
 <div class="row" ng-hide="isLoggedIn">

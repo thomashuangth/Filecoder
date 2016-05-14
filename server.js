@@ -11,6 +11,7 @@
 	var mongoose = require('mongoose');
 	var path = require('path'); //Set absolute path
 	var bodyParser = require('body-parser');
+
 	var routes = require('./app/routes/index');
 
 	var colors = require('colors');
@@ -29,7 +30,6 @@
 	app.use(bodyParser.urlencoded({'extended':'true'}));
 	app.use(bodyParser.json());
 	app.use(routes);
-
 
 	
 

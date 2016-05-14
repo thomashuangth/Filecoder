@@ -84,7 +84,7 @@ module.exports = function(app) {
 	function(email, password, done) {
 		process.nextTick(function() {
 			var profile = {id: 0, email: email, password: password}
-			getUserIfExist(profile, 'local', done);
+			getUserOrCreateUser(profile, 'local', done);
 		});
 	}));
 	
@@ -105,7 +105,7 @@ module.exports = function(app) {
         	profile.token = token;
         	profile.refreshToken = refreshToken;
         	profile.email = profile.emails[0].value;
-            getUserIfExist(profile, 'facebook', done);
+            getUserOrCreateUser(profile, 'facebook', done);
         });
     }));
 
@@ -125,13 +125,13 @@ module.exports = function(app) {
         	profile.token = token;
         	profile.refreshToken = refreshToken;
         	profile.email = profile.emails[0].value;
-            getUserIfExist(profile, 'google', done);
+            getUserOrCreateUser(profile, 'google', done);
         });
     }));
 
 	/*=================================== METHODS ===================================*/
 
-	function getUserIfExist(profile, context, done) {
+	function getUserOrCreateUser(profile, context, done) {
 		User.findOne({
 			$or: [
 				{ 'local.email': profile.email },
