@@ -7,7 +7,8 @@ var TaskSchema = new mongoose.Schema({
     name        : { type: String, required: true},
     input       : String,
     output      : String,
-    filename    : String
+    filename    : String,
+    type		: String
 
 });
 

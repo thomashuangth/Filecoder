@@ -1,30 +1,65 @@
-<div class="row" ng-show="isLoggedIn">
+<div class="col-md-12" ng-show="isLoggedIn" ng-controller="taskController">
 	<h2>Welcome {{user.username ? user.username : user.email }}</h2>
 	<hr>
 	<h3>Add a task to process</h3>
-	<form ng-controller="taskController as up" name="up.upload_form">
+	<form name="upload_form">
 		<div class="form-group">
-			<input type="text" class="form-control" placeholder="Task name" ng-model="task.name"><br>
-			<input type="text" class="form-control" placeholder="Output (avi, mp4, mkv...)" ng-model="task.output"><br>
-			<input type="file" ngf-select ng-model="up.file" name="file" nfg-pattern="'video/*'" accept="video/*" nfg-max-size="20MB">
-			Video preview: <img style="width:100px;" ngf-thumbnail="up.file || '/thumb.jpg'"/>
-            <i ng-show="up.upload_form.file.$error.required">*required</i><br>
-            <i ng-show="up.upload_form.file.$error.maxSize">File too large 
-            {{ up.file.size / 1000000|number:1 }}MB: max 20M</i>
-            <p>{{ up.progress }}</p>
+			<input type="text" class="form-control" placeholder="Task name" ng-model="task.name" required><br>
+			<input type="file" ngf-select="checkFile()" ng-model="file" name="file" ngf-pattern="'video/*,audio/*'" ngf-accept="'video/*,audio/*'" ngf-max-size="20MB" required><br>
+			<video controls ngf-src="file" style="width: 50%;"></video>
+			<audio controls ngf-src="file" style="width: 50%;"></audio>			
+            <i ng-show="upload_form.file.$error.maxSize">File too large : max 20M</i><br>
+            <select class="form-control output-select" ng-model="task.output" disabled required>
+            	<option value="" disabled selected>Upload a video/audio and choose the output</option>
+            	<option disabled="disabled">-- Video --</option>
+				<option ng-show="isVideo">avi</option>
+				<option ng-show="isVideo">mp4</option>
+				<option ng-show="isVideo">mkv</option>
+				<option ng-show="isVideo">3gp</option>	
+				<option ng-show="isVideo">avi</option>	
+				<option ng-show="isVideo">avi</option>
+				<option ng-show="isVideo">flv</option>	
+				<option ng-show="isVideo">mov</option> 
+				<option ng-show="isVideo">mkv</option>	
+				<option ng-show="isVideo">mp4</option> 
+				<option ng-show="isVideo">m2ts</option>
+				<option ng-show="isVideo">ts</option>	
+				<option ng-show="isVideo">mpg</option>	
+				<option ng-show="isVideo">divx</option>
+				<option ng-show="isVideo">ogg</option>	
+				<option ng-show="isVideo">webm</option>
+				<option ng-show="isVideo">wmv</option>	
+				<option ng-show="isVideo">mp3</option>
+            	<option disabled="disabled">-- Audio --</option>
+				<option>mp3</option>
+				<option>m4a</option>
+				<option>aac</option>		
+				<option>aiff</option>		
+				<option>flac</option>		
+				<option>m4a</option>		
+				<option>mp3</option>		
+				<option>mp3</option>	
+				<option>ogg</option>		
+				<option>wav</option>		
+				<option>wma</option>		
+			</select>
+            <p>{{ progress }}</p>
 
-			<button type="submit" class="btn btn-success" ng-click="createTask()">Convert</button>
+			<button type="submit" class="btn btn-success btn-upload" ng-click="uploadCreate()">Convert</button>
 		</div>
 	</form>
 	<hr>
 	<h3>Your Tasks</h3>
-	<div ng-repeat="task in tasks">
+	<div ng-repeat="task in tasks | orderBy: '-id':true ">
 		<div class="panel panel-default">
 			<div class="panel-heading">
 				<h3 class="panel-title">{{ task.name }}</h3>
 				</div>
 				<div class="panel-body">
-				Output : {{ task.output }}
+				<b>Input </b>: {{ task.input }}<br>
+				<b>Output </b>: {{ task.output }}<br>
+				<b>Filename </b>: {{ task.filename }}<br>
+				<b>Media Type</b> : {{ task.type }}
 			</div>
 		</div>
 	</div>

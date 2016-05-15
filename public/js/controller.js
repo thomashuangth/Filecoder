@@ -3,10 +3,12 @@ var mainController = angular.module('mainController', ['ngCookies', 'ngFileUploa
 mainController.controller('htmlController', ['$scope', '$rootScope', '$http', '$cookies', '$location', function($scope, $rootScope, $http, $cookies, $location){
 	var user = $cookies.getObject('TCCurrentUser');
 	if (user) {
-		console.log('User found');
 		$rootScope.loggedUser = user;
 		$rootScope.isLoggedIn = true;
 	};
+	
+	$rootScope.infos = [];
+	$rootScope.errors = [];
 
 	$scope.logOut = function() {
 		$http.get('/logout')
@@ -81,7 +83,7 @@ mainController.controller('detailsController', ['$scope', '$http', '$routeParams
 		});
 }]);
 
-mainController.controller('authenticationController', ['$scope', '$rootScope', '$http', '$cookies', '$location', '$window', function($scope, $rootScope, $http, $cookies, $location, $window) {
+mainController.controller('authenticationController', ['$scope', '$rootScope', '$http', '$cookies', '$location', function($scope, $rootScope, $http, $cookies, $location) {
 	$scope.createUser = function() {
 		if (typeof $scope.user == "undefined" || typeof $scope.user.email == "undefined" || typeof $scope.user.password == "undefined") {
 			return false;
@@ -153,53 +155,87 @@ mainController.controller('authenticationController', ['$scope', '$rootScope', '
 		var top = (screen.height/2)-(h/2);
 		window.open(url, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width='+w+', height='+h+', top='+top+', left='+left);
 	} 
+
 }]);
 
-mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'Upload', '$window', function($scope, $rootScope, $http, Upload, $window) {
-	var vm = this;
-	$scope.createTask = function(){
-		vm.file.input = vm.file.name.split('.')[vm.file.name.split('.').length -1];
-		vm.file.output = $scope.task.output;
-		vm.file.filename = "ENC_" + vm.file.output + "_" + vm.file.name;
+mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'Upload', function($scope, $rootScope, $http, Upload) {
+	
+	$scope.checkFile = function() {
 
+		if ($scope.file) {
+			if ($scope.file.type.split('/')[0] == "video") {
+				$scope.isVideo = true;
+			} else {
+				$scope.isVideo = false;
+			};
+			if ($scope.upload_form.file.$error.maxSize || $scope.upload_form.file.$error.pattern) {
+				$('.btn-upload').attr('disabled', 'disabled');
+				$('.output-select').attr('disabled', 'disabled');
+			} else {
+				$('.btn-upload').removeAttr('disabled');
+				$('.output-select').removeAttr('disabled');
+			};
+		} else {
+			$('.btn-upload').attr('disabled', 'disabled');
+			$('.output-select').attr('disabled', 'disabled');
+		};
+
+	};
+
+	$scope.uploadCreate = function() {
+		$rootScope.infos = [];
+		$rootScope.errors = [];
+
+		//2nd field check
 		if (typeof $scope.task == "undefined" || typeof $scope.task.name == "undefined" || typeof $scope.task.output == "undefined") {
 			return false;
 		};
-		$scope.task.owner = $rootScope.loggedUser.email;
-		$http.post('/task/create', $scope.task)
-			.success(function(data) {
-				console.log("Task created");
-				$scope.tasks = data;
-			})
-			.error(function(data) {
-				console.log("Task not created");
-			})
-
-		if(vm.upload_form.file.$valid && vm.file) {
-			vm.upload(vm.file);
-		}
+		
+		if ($scope.file) {
+			$scope.file.input = $scope.task.input = $scope.file.name.split('.')[$scope.file.name.split('.').length -1];
+			$scope.file.output = $scope.task.output;
+			$scope.file.filename = $scope.task.filename = "ENC_" + $scope.file.output + "_" + $scope.file.name;
+			$scope.task.type = $scope.file.type.split('/')[0];
+		};
+			
+		if($scope.upload_form.file.$valid && $scope.file) {
+			$scope.upload($scope.file);
+		};
+				
 	};
 
-	vm.upload = function(file) {
-		console.log(file);
+	$scope.upload = function(file) {
 		Upload.upload({
 			url: '/upload',
 			method: 'POST',
-			data: {file: file, input: vm.file.input, output: vm.file.output, filename: vm.file.filename }
+			data: {file: file, input: $scope.file.input, output: $scope.file.output, filename: $scope.file.filename, name: $scope.task.name }
 		}).then(function (resp) {
 			if (resp.data.error_code === 0) {
-				$window.alert("Success " + resp.config.data.file.name + " uploaded. Response: ");
+				$rootScope.infos.push("Success " + resp.config.data.file.name + " uploaded.");
+				$scope.createTask($scope.task);
+				$scope.file = {};
+				$scope.task = {};
+				console.log($rootScope);
 			} else {
-				$window.alert('An error occured ');
+				$rootScope.errors.push(resp.data.err_desc);
 			};
 		}, function(resp){
-			console.log("Error status: " + resp.status);
-			$window.alert("Error status: " + resp.status);
+			$rootScope.errors.push("Error status: " + resp.status);
 		}, function(evt) {
-			console.log(evt);
 			var progressPercentage = parseInt(100.0 * evt.loaded / evt.total);
-			console.log('progress: ' + progressPercentage + '% ' + evt.config.data.file.name);
-			vm.progress = "progress: " + progressPercentage + "% ";
+			$scope.progress = "progress: " + progressPercentage + "% ";
 		});
 	};
+
+	$scope.createTask = function(task) {
+		$http.post('/task/create', task)
+			.success(function(data) {
+				$rootScope.infos.push("Task " + task.name + " created");
+				$scope.tasks = data;
+			})
+			.error(function(data) {
+				$rootScope.errors.push("Task " + task.name + " not created");
+			});
+	};
+
 }]);

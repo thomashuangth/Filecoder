@@ -82,13 +82,23 @@ router.get('/task/get', isAuthenticated, function(req, res) {
 });
 
 router.post('/task/create', isAuthenticated, function(req, res) {
-	var task = new Task({owner: req.body.owner, name: req.body.name, output: req.body.output});
+
+
+	console.log("Creating new task...");
+	var task = new Task({
+		owner: req.user.email, 
+		name: req.body.name, 
+		output: req.body.output, 
+		input: req.body.input, 
+		type: req.body.type, 
+		filename: req.body.filename
+	});
 
 	task.save(function(err){
 		if (err) {
 			console.log(err);
 		} else {
-			console.log(task.name + " has been created");
+			console.log(task.name + " has been created".green);
 		};
 	});
 
@@ -97,6 +107,9 @@ router.post('/task/create', isAuthenticated, function(req, res) {
 			res.send(err);
 		res.json(tasks);
 	});
+
+
+	
 });
 
 /*** UPLOAD ***/
@@ -109,8 +122,6 @@ router.post('/upload', isAuthenticated, function(req, res) {
 			cb(null, './tmp/');
 		},
 		filename: function(req, file, cb) {
-			
-			console.log(file);
 			cb(null, file.originalname);
 		}
 	});
@@ -120,48 +131,70 @@ router.post('/upload', isAuthenticated, function(req, res) {
 	console.log('Upload process');
 	upload(req, res, function(err) {
 		"use strict";
+
 		if (err) {
 			console.log('Upload error'.red);
 			res.json({error_code: 1, err_desc: err});
 			return;
 		};
 
-		var filename = req.body.filename;
-		var oldFilename = req.body.filename;
-		var copyNumber = 1;
-
-		checkFileExist();
-
-		function checkFileExist() {
-			console.log('Loop '+copyNumber);
-			if (copyNumber != 1) {
-				filename = "(" + copyNumber + ")" + req.body.filename;
+		Task.findOne({owner: req.user.email, name: req.body.name}, function(err, task) {
+			if (err) {
+				console.log('taskExistCheck Error'.red);
 			};
-			//Check if the file exist, Yes => Create a second, No => Just create
-			fs.exists(__dirname + '../../../uploads/' + req.user.email + '/' + filename, function(exists) {
-				if (exists) {
-					console.log(filename + ' exists'.red);
-					copyNumber++;
-					checkFileExist();
-				} else {
-					console.log(filename + ' does not exist'.green);
-					moveRename();
-				};
-			});
 				
-		}
+			if (task) {
+				console.log(task.name + " already exists".red);
+				res.json({error_code: 1, err_desc: task.name + " already exists"});
+				return;
+			};
 
-		function moveRename() {
-			req.body.filename = filename;
-			checkDirectorySync("./uploads/" + req.user.email);
-			fs.rename('./tmp/' + req.file.originalname, './uploads/' + req.user.email + '/' + req.body.filename, function(err) {
-			    if ( err ) console.log('ERROR: ' + err);
-			    console.log('Upload of '.green + req.body.filename + ' success !'.green);
-				res.json({error_code:0, err_desc: null});
-			});
-		}
+			var filename = req.body.filename;
+			var oldFilename = req.body.filename;
+			var copyNumber = 1;
+
+
+			checkFileExist();
+
+			function checkFileExist() {
+				if (copyNumber != 1) {
+					filename = "(" + copyNumber + ")" + req.body.filename;
+				};
+
+				//Check if the file exist, Yes => Create a second, No => Just create
+				fs.exists(__dirname + '../../../uploads/' + req.user.email + '/' + filename, function(exists) {
+					if (exists) {
+						console.log(filename + ' exists'.red);
+						copyNumber++;
+						checkFileExist();
+					} else {
+						console.log(filename + ' does not exist'.green);
+						moveRename();
+					};
+				});
+					
+			}
+
+			function moveRename() {
+				req.body.filename = filename;
+				checkDirectorySync("./uploads");
+				checkDirectorySync("./uploads/" + req.user.email);
+
+				//Rename and move the file to the correct path
+				fs.rename('./tmp/' + req.file.originalname, './uploads/' + req.user.email + '/' + req.body.filename, function(err) {
+				    if ( err ) console.log('ERROR: ' + err);
+				    console.log('Upload of '.green + req.body.filename + ' success !'.green);
+					res.json({error_code:0, err_desc: null});
+				});
+			}
+
+		});
+
+			
 			
 	}); /* End of upload */
+	
+	
 
 });
 
