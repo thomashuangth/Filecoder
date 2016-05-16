@@ -21,6 +21,10 @@ myApp.config(['$routeProvider', '$locationProvider', function($routeProvider, $l
 		when('/profil', {
 			templateUrl: '../partials/profil.html'
 		}).
+		when('/tasks', {
+			templateUrl: '../partials/tasks.html',
+			controller: 'taskController'
+		}).
 		when('/after-auth', {
 			templateUrl: '../partials/after-auth.html'
 		}).

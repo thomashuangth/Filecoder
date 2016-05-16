@@ -1,13 +1,36 @@
 var mainController = angular.module('mainController', ['ngCookies', 'ngFileUpload']);
 
 mainController.controller('htmlController', ['$scope', '$rootScope', '$http', '$cookies', '$location', function($scope, $rootScope, $http, $cookies, $location){
-	var user = $cookies.getObject('TCCurrentUser');
-	if (user) {
-		$rootScope.loggedUser = user;
-		$rootScope.isLoggedIn = true;
+
+	if (typeof $rootScope.isLoggedIn !== "undefined") {
+		checkCurrentUser();
+	} else {
+		if ($cookies.getObject('TCCurrentUser')) {
+			$rootScope.loggedUser = $cookies.getObject('TCCurrentUser');
+			$rootScope.isLoggedIn = true;
+		};
 	};
+
 	$rootScope.infos = [];
 	$rootScope.errors = [];
+
+	//Clear dialogs on location change
+	$scope.$on('$locationChangeStart', function(event) {
+	    $rootScope.infos = [];
+		$rootScope.errors = [];
+	});
+
+	function checkCurrentUser() {
+		$http.get('/isAuth')
+			.success(function(data) {
+				$rootScope.loggedUser = data;
+				$rootScope.isLoggedIn = true;
+			})
+			.error(function(data) {
+				console.log('Errors: ' + data);
+			});
+	};
+
 
 	$scope.logOut = function() {
 		$http.get('/logout')
@@ -21,24 +44,13 @@ mainController.controller('htmlController', ['$scope', '$rootScope', '$http', '$
 			.error(function(data) {
 				console.log('Errors: ' + data);
 			});
-	}
-
+	};
+	
 }]);
 
 mainController.controller('homeController', ['$scope', '$rootScope', '$http', '$cookies', function($scope, $rootScope, $http, $cookies) {
 
-	if ($rootScope.isLoggedIn) {
-		$scope.user = $rootScope.loggedUser;
-
-		$http.get('/task/get')
-			.success(function(data) {
-				$scope.tasks = data;
-				console.log(data);
-			})
-			.error(function(data) {
-				console.log('Errors: ' + data);
-			});
-	};
+	
 	
 	/*$http.get('/get')
 		.success(function(data) {
@@ -114,7 +126,6 @@ mainController.controller('authenticationController', ['$scope', '$rootScope', '
 				expired.setDate(today.getDate() + 1); //Set expired date to tomorrow
 				$cookies.putObject('TCCurrentUser', data, {expire : expired });
 				console.log("Cookie created : " + $cookies);
-				console.log(data);
 
 				$location.path('/');
 			})
@@ -129,8 +140,6 @@ mainController.controller('authenticationController', ['$scope', '$rootScope', '
 		newwindow=window.open('auth/facebook','name','height=800,width=500');
 	}
 
-	/* Methods */
-
 	window.isAuth = function() {
 		$http.get('/isAuth')
 			.success(function(data) {
@@ -142,7 +151,6 @@ mainController.controller('authenticationController', ['$scope', '$rootScope', '
 				expired.setDate(today.getDate() + 1); //Set expired date to tomorrow
 				$cookies.putObject('TCCurrentUser', data, {expire : expired });
 				console.log("Cookie created : " + $cookies);
-				console.log(data);
 
 				$location.path('/');
 			})
@@ -161,8 +169,17 @@ mainController.controller('authenticationController', ['$scope', '$rootScope', '
 
 mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'Upload', function($scope, $rootScope, $http, Upload) {
 	
-	$scope.checkFile = function() {
+	if ($rootScope.isLoggedIn) {
+		$http.get('/task/get')
+			.success(function(data) {
+				$scope.tasks = data;
+			})
+			.error(function(data) {
+				console.log('Errors: ' + data);
+			});
+	};
 
+	$scope.checkFile = function() {
 		//Reset select options
 		$('.output-select').prop("selectedIndex", 0);
 		$('.btn-upload').attr('disabled', 'disabled');
@@ -227,7 +244,6 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 				$scope.createTask($scope.task);
 				$scope.file = {};
 				$scope.task = {};
-				console.log($rootScope);
 			} else {
 				$rootScope.errors.push(resp.data.err_desc);
 			};
@@ -247,6 +263,17 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 			})
 			.error(function(data) {
 				$rootScope.errors.push("Task not created");
+			});
+	};
+
+	$scope.deleteTask = function(taskId) {
+		$http.delete('/task/delete/' + taskId)
+			.success(function(data) {
+				$scope.tasks = data;
+				$rootScope.infos.push("Task deleted");
+			})
+			.error(function(data) {
+				$rootScope.errors.push("Task not deleted");
 			});
 	};
 

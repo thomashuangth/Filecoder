@@ -9,7 +9,8 @@ var TaskSchema = new mongoose.Schema({
     output      : String,
     filename    : String,
     type		: String,
-    date 		: { type: Date, default: Date.now }
+    date 		: { type: Date, default: Date.now },
+    paid		: Boolean
 
 });
 

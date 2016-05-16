@@ -1,0 +1,25 @@
+<div class="col-md-12">
+	<h2>Tasks</h2>
+	<hr>
+	<h3>All Tasks</h3>
+	<div class="row">
+		<div class="col-sm-4" ng-repeat="task in tasks | orderBy:'-id':true | limitTo:10">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3 class="panel-title">{{ task.filename }} [{{ task.input }} => {{ task.output }}] ( {{ task.date | date: 'yyyy-MM-dd HH:mm:ss' }} )</h3>
+					</div>
+					<div class="panel-body">
+					<b>Input </b>: {{ task.input }}<br>
+					<b>Output </b>: {{ task.output }}<br>
+					<b>Filename </b>: {{ task.filename }}<br>
+					<b>Media Type</b> : {{ task.type }}
+					<button class="btn btn-danger" ng-click="deleteTask(task._id)">Delete</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="row" ng-hide="isLoggedIn">
+	<h2>Please Login or Register</h2>
+</div>

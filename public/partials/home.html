@@ -1,7 +1,7 @@
 <div class="col-md-12" ng-show="isLoggedIn" ng-controller="taskController">
-	<h2>Welcome {{user.username ? user.username : user.email }}</h2>
+	<h2>Welcome {{loggedUser.username ? loggedUser.username : loggedUser.email }}</h2>
 	<hr>
-	<h3>Add a task to process</h3>
+	<h3 class="text-center">Quick Convert</h3>
 	<form name="upload_form">
 		<div class="form-group">
 			<input type="file" ngf-select="checkFile()" ng-model="file" name="file" ngf-pattern="'video/*,audio/*,.mkv'" ngf-accept="'video/*,audio/*,.mkv'" ngf-max-size="700MB" required><br>
@@ -49,19 +49,25 @@
 		</div>
 	</form>
 	<hr>
-	<h3>Your Tasks</h3>
-	<div ng-repeat="task in tasks | orderBy: '-id':true ">
-		<div class="panel panel-default">
-			<div class="panel-heading">
-				<h3 class="panel-title">{{ task.filename }} [{{ task.input }} => {{ task.output }}] ( {{ task.date | date: 'yyyy-MM-dd HH:mm:ss' }} )</h3>
+	<h3 class="text-center">Your lastest tasks</h3>
+	<div class="row">
+		<div class="col-sm-4" ng-repeat="task in tasks | orderBy:'-id':true | limitTo:3">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3 class="panel-title">{{ task.filename }} [{{ task.input }} => {{ task.output }}] ( {{ task.date | date: 'yyyy-MM-dd HH:mm:ss' }} )</h3>
+					</div>
+					<div class="panel-body">
+					<b>Input </b>: {{ task.input }}<br>
+					<b>Output </b>: {{ task.output }}<br>
+					<b>Filename </b>: {{ task.filename }}<br>
+					<b>Media Type</b> : {{ task.type }}
+					<button class="btn btn-danger" ng-click="deleteTask(task._id)">Delete</button>
 				</div>
-				<div class="panel-body">
-				<b>Input </b>: {{ task.input }}<br>
-				<b>Output </b>: {{ task.output }}<br>
-				<b>Filename </b>: {{ task.filename }}<br>
-				<b>Media Type</b> : {{ task.type }}
 			</div>
 		</div>
+	</div>
+	<div class="row text-center">
+		<a href="/tasks" class="btn btn-default">All Tasks</a>
 	</div>
 </div>
 

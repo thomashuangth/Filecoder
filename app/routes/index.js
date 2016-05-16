@@ -1,14 +1,14 @@
-var express = require('express');
+var express = require("express");
 var router = express.Router();
-var path = require('path'); //Set absolute path
-var model = require('../../app/models/index.js');
-var passport = require('passport');
+var path = require("path"); //Set absolute path
+var model = require("../../app/models/index.js");
+var passport = require("passport");
 var User = model.user;
 var Task = model.task;
-var multer = require('multer');
-var fs = require('fs');
+var multer = require("multer");
+var fs = require("fs");
 
-var config = require('../config');
+var config = require("../config");
 
 "use strict";
 /*****************
@@ -16,44 +16,44 @@ var config = require('../config');
 ******************/
 
 /* LOGIN */
-router.get('/login', isNotAuthenticated, function(req, res) {
-	console.log('[Route] GET Login'.cyan);
+router.get("/login", isNotAuthenticated, function(req, res) {
+	console.log("[Route] GET Login".cyan);
 	res.json(req.user);
 });
 
-router.post('/login', passport.authenticate('login'), function(req, res) {
-	console.log('[Route] POST Login'.cyan);
+router.post("/login", passport.authenticate("login"), function(req, res) {
+	console.log("[Route] POST Login".cyan);
 	res.json(req.user);
 });
 
 /* REGISTER */
-router.get('/register', isNotAuthenticated, function(req, res) {
-	console.log('[Route] GET Register'.cyan);
+router.get("/register", isNotAuthenticated, function(req, res) {
+	console.log("[Route] GET Register".cyan);
 	res.json(req.user);
 });
 
-router.post('/register', passport.authenticate('register'), function(req, res) {
-	console.log('[Route] POST Register'.cyan);
+router.post("/register", passport.authenticate("register"), function(req, res) {
+	console.log("[Route] POST Register".cyan);
 	res.json(req.user);
 });
 
 /* LOGOUT */
-router.get('/logout', function(req, res) {
-	console.log('[Route] POST Logout'.cyan);
+router.get("/logout", function(req, res) {
+	console.log("[Route] POST Logout".cyan);
 	req.logout();
-	res.redirect('/');
+	res.redirect("/");
 });
 
 /********************
 *** FACEBOOK AUTH ***
 *********************/
 
-router.get('/auth/facebook', passport.authenticate('facebook'));
+router.get("/auth/facebook", passport.authenticate("facebook"));
 
-router.get('/auth/facebook/callback',
-	passport.authenticate('facebook', {
-		successRedirect : '/partials/after-auth.html?success',
-		failureRedirect : '/partials/after-auth.html?failure'
+router.get("/auth/facebook/callback",
+	passport.authenticate("facebook", {
+		successRedirect : "/partials/after-auth.html?success",
+		failureRedirect : "/partials/after-auth.html?failure"
 	})
 );
 
@@ -61,13 +61,13 @@ router.get('/auth/facebook/callback',
 *** GOOGLE AUTH ***
 *******************/
 
-router.get('/auth/google', passport.authenticate('google', { scope : ['profile', 'email'] }));
+router.get("/auth/google", passport.authenticate("google", { scope : ["profile", "email"] }));
 
 // the callback after google has authenticated the user
-router.get('/auth/google/callback',
-    passport.authenticate('google', {
-        successRedirect : '/partials/after-auth.html?success',
-		failureRedirect : '/partials/after-auth.html?failure'
+router.get("/auth/google/callback",
+    passport.authenticate("google", {
+        successRedirect : "/partials/after-auth.html?success",
+		failureRedirect : "/partials/after-auth.html?failure"
     })
 );
 
@@ -75,16 +75,13 @@ router.get('/auth/google/callback',
 *** TASK ***
 ************/
 
-router.get('/task/get', isAuthenticated, function(req, res) {
-	Task.find({owner: req.user.email}, function(err, tasks) {
-		if (err)
-			res.send(err);
-		res.json(tasks);
-	});
+router.get("/task/get", isAuthenticated, function(req, res) {
+
+	getTasksFromUser(req.user.email, res);
+
 });
 
-router.post('/task/create', isAuthenticated, function(req, res) {
-
+router.post("/task/create", isAuthenticated, function(req, res) {
 
 	console.log("Creating new task...");
 	var task = new Task({
@@ -99,50 +96,80 @@ router.post('/task/create', isAuthenticated, function(req, res) {
 	task.save(function(err){
 		if (err) {
 			console.log(err);
+			res.send(err);
 		} else {
 			console.log(task.name + " has been created".green);
 		};
 	});
 
-	Task.find({owner: req.user.email}, function(err, tasks) {
+	getTasksFromUser(req.user.email, res);
+
+});
+
+router.delete("/task/delete/:id", isAuthenticated, function(req, res) {
+
+	Task.findOne({_id: req.params.id}, function(err, task) {
+		if (err) {
+			console.log("Finding current task error".red);
+			res.send(err);
+		};
+			
+		if (task) {
+			console.log(task.name + " found".green);
+			
+			fs.unlinkSync(config.iscsiServer + "uploads/" + req.user.email + "/" + task.filename);
+			Task.remove({_id: req.params.id, owner: req.user.email}, function(err){
+				if (err) {
+					console.log(err);
+					res.send(err);
+				} else {
+					console.log("Task has been removed");
+				};
+			});
+
+			getTasksFromUser(req.user.email, res);
+		};
+	});
+
+});
+
+function getTasksFromUser(email, res) {
+	Task.find({owner: email}, function(err, tasks) {
 		if (err)
 			res.send(err);
 		res.json(tasks);
 	});
-
-
-	
-});
+}
 
 /*** UPLOAD ***/
 	
-router.post('/upload', isAuthenticated, function(req, res) {
+router.post("/upload", isAuthenticated, function(req, res) {
 	
 	var storage = multer.diskStorage({
 		destination: function(req, file, cb) {
 			checkDirectorySync(config.iscsiServer + "tmp");
-			cb(null, config.iscsiServer + 'tmp/');
+			cb(null, config.iscsiServer + "tmp/");
 		},
 		filename: function(req, file, cb) {
 			cb(null, file.originalname);
 		}
 	});
 
-	var upload = multer({storage: storage}).single('file');
+	var upload = multer({storage: storage}).single("file");
 
-	console.log('Upload process');
+	console.log("Upload process");
 	upload(req, res, function(err) {
 		"use strict";
 
 		if (err) {
-			console.log('Upload error'.red);
+			console.log("Upload error".red);
 			res.json({error_code: 1, err_desc: err});
 			return;
 		};
 
 		Task.findOne({owner: req.user.email, name: req.body.filename + " " + req.body.input + " to " + req.body.output}, function(err, task) {
 			if (err) {
-				console.log('taskExistCheck Error'.red);
+				console.log("taskExistCheck Error".red);
 			};
 				
 			if (task) {
@@ -164,13 +191,13 @@ router.post('/upload', isAuthenticated, function(req, res) {
 				};
 
 				//Check if the file exist, Yes => Create a second, No => Just create
-				fs.exists(config.iscsiServer + 'uploads/' + req.user.email + '/' + filename, function(exists) {
+				fs.exists(config.iscsiServer + "uploads/" + req.user.email + "/" + filename, function(exists) {
 					if (exists) {
-						console.log(filename + ' exists'.red);
+						console.log(filename + " exists".red);
 						copyNumber++;
 						checkFileExist();
 					} else {
-						console.log(filename + ' does not exist'.green);
+						console.log(filename + " does not exist".green);
 						moveRename();
 					};
 				});
@@ -182,20 +209,14 @@ router.post('/upload', isAuthenticated, function(req, res) {
 				checkDirectorySync(config.iscsiServer + "uploads/" + req.user.email);
 
 				//Rename and move the file to the correct path
-				fs.rename(config.iscsiServer + 'tmp/' + req.file.originalname, config.iscsiServer + 'uploads/' + req.user.email + '/' + req.body.filename, function(err) {
-				    if ( err ) console.log('ERROR: ' + err);
-				    console.log('Upload of '.green + req.body.filename + ' success !'.green);
+				fs.rename(config.iscsiServer + "tmp/" + req.file.originalname, config.iscsiServer + "uploads/" + req.user.email + "/" + req.body.filename, function(err) {
+				    if ( err ) console.log("ERROR: " + err);
+				    console.log("Upload of ".green + req.body.filename + " success !".green);
 					res.json({error_code:0, err_desc: null});
 				});
 			}
-
 		});
-
-			
-			
 	}); /* End of upload */
-	
-	
 
 });
 
@@ -203,17 +224,22 @@ router.post('/upload', isAuthenticated, function(req, res) {
 *** CLASSICS ***
 ****************/
 
-router.get('/isAuth', isAuthenticated, function(req, res) {
+router.get("/isAuth", isAuthenticated, function(req, res) {
 	res.json(req.user);
 });
 
-router.get('/profil', isAuthenticated, function(req, res) {
-	res.sendFile(path.join(__dirname, '../../public', 'index.html'));
-	console.log('[Route] GET Profil'.cyan);
+router.get("/profil", isAuthenticated, function(req, res) {
+	res.sendFile(path.join(__dirname, "../../public", "index.html"));
+	console.log("[Route] GET Profil".cyan);
+});
+
+router.get("/tasks", isAuthenticated, function(req, res) {
+	res.sendFile(path.join(__dirname, "../../public", "index.html"));
+	console.log("[Route] GET Tasks".cyan);
 });
 
 /* WHO AM I */
-router.get('/whoami', isAuthenticated, function(req, res) {
+router.get("/whoami", isAuthenticated, function(req, res) {
 	res.json(req.user);
 });
 
@@ -222,9 +248,9 @@ router.get('/whoami', isAuthenticated, function(req, res) {
 ***************/
 
 function isAuthenticated(req, res, next) {
-	console.log('Checking if user is authenticated...');
+	console.log("Checking if user is authenticated...");
 	if (req.isAuthenticated()) {
-		console.log('Authorized route !'.green)
+		console.log("Authorized route !".green)
 		return next();
 	};
 	console.log("Forbidden route".red);
@@ -232,13 +258,13 @@ function isAuthenticated(req, res, next) {
 };
 
 function isNotAuthenticated(req, res, next) {
-	console.log('Checking if user is not authenticated...');
+	console.log("Checking if user is not authenticated...");
 	if (!req.isAuthenticated) {
-		console.log('Authorized route ! !'.green);
+		console.log("Authorized route ! !".green);
 		return next();
 	};
 	console.log("Forbidden route".red);
-	res.redirect('/');
+	res.redirect("/");
 };
 
 function checkDirectorySync(directory) {
