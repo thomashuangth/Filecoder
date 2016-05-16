@@ -6,7 +6,6 @@ mainController.controller('htmlController', ['$scope', '$rootScope', '$http', '$
 		$rootScope.loggedUser = user;
 		$rootScope.isLoggedIn = true;
 	};
-	
 	$rootScope.infos = [];
 	$rootScope.errors = [];
 
@@ -23,6 +22,7 @@ mainController.controller('htmlController', ['$scope', '$rootScope', '$http', '$
 				console.log('Errors: ' + data);
 			});
 	}
+
 }]);
 
 mainController.controller('homeController', ['$scope', '$rootScope', '$http', '$cookies', function($scope, $rootScope, $http, $cookies) {
@@ -33,6 +33,7 @@ mainController.controller('homeController', ['$scope', '$rootScope', '$http', '$
 		$http.get('/task/get')
 			.success(function(data) {
 				$scope.tasks = data;
+				console.log(data);
 			})
 			.error(function(data) {
 				console.log('Errors: ' + data);
@@ -162,22 +163,27 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 	
 	$scope.checkFile = function() {
 
+		//Reset select options
+		$('.output-select').prop("selectedIndex", 0);
+		$('.btn-upload').attr('disabled', 'disabled');
+		$('.output-select').attr('disabled', 'disabled');
+		//Show every output
+		$('.output-select option').show();
+
 		if ($scope.file) {
+			//Check if the file type is a video
 			if ($scope.file.type.split('/')[0] == "video") {
 				$scope.isVideo = true;
 			} else {
 				$scope.isVideo = false;
 			};
-			if ($scope.upload_form.file.$error.maxSize || $scope.upload_form.file.$error.pattern) {
-				$('.btn-upload').attr('disabled', 'disabled');
-				$('.output-select').attr('disabled', 'disabled');
-			} else {
+			//Check type and size requirements
+			if (!$scope.upload_form.file.$error.maxSize && !$scope.upload_form.file.$error.pattern) {
 				$('.btn-upload').removeAttr('disabled');
 				$('.output-select').removeAttr('disabled');
 			};
-		} else {
-			$('.btn-upload').attr('disabled', 'disabled');
-			$('.output-select').attr('disabled', 'disabled');
+			//Remove current input in output
+			$('.output-select option:contains(' + ($scope.file.name.split('.')[$scope.file.name.split('.').length -1]).toUpperCase() + ')').hide();
 		};
 
 	};
@@ -186,18 +192,24 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 		$rootScope.infos = [];
 		$rootScope.errors = [];
 
-		//2nd field check
-		if (typeof $scope.task == "undefined" || typeof $scope.task.name == "undefined" || typeof $scope.task.output == "undefined") {
+		//Second field check
+		if (typeof $scope.task == "undefined" || typeof $scope.task.output == "undefined") {
+			$rootScope.errors.push("Please fill the required fields");
 			return false;
 		};
 		
+		//Set correct value of input, output, filename and type
 		if ($scope.file) {
-			$scope.file.input = $scope.task.input = $scope.file.name.split('.')[$scope.file.name.split('.').length -1];
+			$scope.file.input = $scope.task.input = ($scope.file.name.split('.')[$scope.file.name.split('.').length -1]).toUpperCase();
 			$scope.file.output = $scope.task.output;
+			if ($scope.file.input == $scope.file.output) {
+				$rootScope.errors.push("The file is already in " + $scope.file.output);
+				return false;
+			};
 			$scope.file.filename = $scope.task.filename = "ENC_" + $scope.file.output + "_" + $scope.file.name;
 			$scope.task.type = $scope.file.type.split('/')[0];
 		};
-			
+		
 		if($scope.upload_form.file.$valid && $scope.file) {
 			$scope.upload($scope.file);
 		};
@@ -208,7 +220,7 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 		Upload.upload({
 			url: '/upload',
 			method: 'POST',
-			data: {file: file, input: $scope.file.input, output: $scope.file.output, filename: $scope.file.filename, name: $scope.task.name }
+			data: {file: file, input: $scope.file.input, output: $scope.file.output, filename: $scope.file.filename }
 		}).then(function (resp) {
 			if (resp.data.error_code === 0) {
 				$rootScope.infos.push("Success " + resp.config.data.file.name + " uploaded.");
@@ -230,11 +242,11 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 	$scope.createTask = function(task) {
 		$http.post('/task/create', task)
 			.success(function(data) {
-				$rootScope.infos.push("Task " + task.name + " created");
+				$rootScope.infos.push("Task created");
 				$scope.tasks = data;
 			})
 			.error(function(data) {
-				$rootScope.errors.push("Task " + task.name + " not created");
+				$rootScope.errors.push("Task not created");
 			});
 	};
 

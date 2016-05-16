@@ -8,6 +8,8 @@ var Task = model.task;
 var multer = require('multer');
 var fs = require('fs');
 
+var config = require('../config');
+
 "use strict";
 /*****************
 *** LOCAL AUTH ***
@@ -87,7 +89,7 @@ router.post('/task/create', isAuthenticated, function(req, res) {
 	console.log("Creating new task...");
 	var task = new Task({
 		owner: req.user.email, 
-		name: req.body.name, 
+		name: req.body.filename + " " + req.body.input + " to " + req.body.output, 
 		output: req.body.output, 
 		input: req.body.input, 
 		type: req.body.type, 
@@ -118,8 +120,8 @@ router.post('/upload', isAuthenticated, function(req, res) {
 	
 	var storage = multer.diskStorage({
 		destination: function(req, file, cb) {
-			checkDirectorySync("./tmp");
-			cb(null, './tmp/');
+			checkDirectorySync(config.iscsiServer + "tmp");
+			cb(null, config.iscsiServer + 'tmp/');
 		},
 		filename: function(req, file, cb) {
 			cb(null, file.originalname);
@@ -138,7 +140,7 @@ router.post('/upload', isAuthenticated, function(req, res) {
 			return;
 		};
 
-		Task.findOne({owner: req.user.email, name: req.body.name}, function(err, task) {
+		Task.findOne({owner: req.user.email, name: req.body.filename + " " + req.body.input + " to " + req.body.output}, function(err, task) {
 			if (err) {
 				console.log('taskExistCheck Error'.red);
 			};
@@ -153,7 +155,7 @@ router.post('/upload', isAuthenticated, function(req, res) {
 			var oldFilename = req.body.filename;
 			var copyNumber = 1;
 
-
+			checkDirectorySync( config.iscsiServer + "uploads");
 			checkFileExist();
 
 			function checkFileExist() {
@@ -162,7 +164,7 @@ router.post('/upload', isAuthenticated, function(req, res) {
 				};
 
 				//Check if the file exist, Yes => Create a second, No => Just create
-				fs.exists(__dirname + '../../../uploads/' + req.user.email + '/' + filename, function(exists) {
+				fs.exists(config.iscsiServer + 'uploads/' + req.user.email + '/' + filename, function(exists) {
 					if (exists) {
 						console.log(filename + ' exists'.red);
 						copyNumber++;
@@ -177,11 +179,10 @@ router.post('/upload', isAuthenticated, function(req, res) {
 
 			function moveRename() {
 				req.body.filename = filename;
-				checkDirectorySync("./uploads");
-				checkDirectorySync("./uploads/" + req.user.email);
+				checkDirectorySync(config.iscsiServer + "uploads/" + req.user.email);
 
 				//Rename and move the file to the correct path
-				fs.rename('./tmp/' + req.file.originalname, './uploads/' + req.user.email + '/' + req.body.filename, function(err) {
+				fs.rename(config.iscsiServer + 'tmp/' + req.file.originalname, config.iscsiServer + 'uploads/' + req.user.email + '/' + req.body.filename, function(err) {
 				    if ( err ) console.log('ERROR: ' + err);
 				    console.log('Upload of '.green + req.body.filename + ' success !'.green);
 					res.json({error_code:0, err_desc: null});

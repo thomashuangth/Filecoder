@@ -11,12 +11,12 @@
 	var mongoose = require('mongoose');
 	var path = require('path'); //Set absolute path
 	var bodyParser = require('body-parser');
-
 	var routes = require('./app/routes/index');
-
 	var colors = require('colors');
 
-	mongoose.connect('mongodb://127.0.0.1/transcoder', function(err){
+	var config = require('./app/config');
+
+	mongoose.connect('mongodb://' + config.mongoServer + '/' + config.databaseName, function(err){
 		if (err) {
 			console.log('[!] Mongo DB connection error...'.red, err);
 		} else {
@@ -100,9 +100,9 @@
 		res.sendFile(path.join(__dirname, '/public', 'index.html'));
 		console.log('[Route] *'.cyan);
 	});
-	var port = 3000;
-	app.listen(port, "0.0.0.0", function() {
-		console.log("\n*******************************************\n**".red + (" Transcoder is now online on port " + port).yellow + " **\n*******************************************".red);		
+
+	app.listen(config.serverPort, "0.0.0.0", function() {
+		console.log("\n*******************************************\n**".red + (" Transcoder is now online on port " + config.serverPort).yellow + " **\n*******************************************".red);		
 		console.log(new Date().toString().grey + '\n');
 	});
 })();

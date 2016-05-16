@@ -9,13 +9,14 @@ module.exports = function(app) {
 	var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 	var MongoStore = require('connect-mongo')(expressSession);
 
+	var config = require('./config');
 	var configAuth = require('./auth');
 
 	app.use(expressSession({
 		secret: 'TCsecret', 
 		maxAge: new Date(Date.now() + 3600000),
 		store: new MongoStore(
-			{url: 'mongodb://127.0.0.1/transcoder'},
+			{url: 'mongodb://' + config.mongoServer + '/' + config.databaseName},
 			function(err) {
 				console.log(err || '[x] Connect-Mongo Setup Ok');
 			}

@@ -4,44 +4,44 @@
 	<h3>Add a task to process</h3>
 	<form name="upload_form">
 		<div class="form-group">
-			<input type="text" class="form-control" placeholder="Task name" ng-model="task.name" required><br>
-			<input type="file" ngf-select="checkFile()" ng-model="file" name="file" ngf-pattern="'video/*,audio/*'" ngf-accept="'video/*,audio/*'" ngf-max-size="20MB" required><br>
+			<input type="file" ngf-select="checkFile()" ng-model="file" name="file" ngf-pattern="'video/*,audio/*,.mkv'" ngf-accept="'video/*,audio/*,.mkv'" ngf-max-size="700MB" required><br>
 			<video controls ngf-src="file" style="width: 50%;"></video>
 			<audio controls ngf-src="file" style="width: 50%;"></audio>			
-            <i ng-show="upload_form.file.$error.maxSize">File too large : max 20M</i><br>
+            <i ng-show="upload_form.file.$error.maxSize">File too large : max 700MB</i><br>
             <select class="form-control output-select" ng-model="task.output" disabled required>
             	<option value="" disabled selected>Upload a video/audio and choose the output</option>
             	<option disabled="disabled">-- Video --</option>
-				<option ng-show="isVideo">avi</option>
-				<option ng-show="isVideo">mp4</option>
-				<option ng-show="isVideo">mkv</option>
-				<option ng-show="isVideo">3gp</option>	
-				<option ng-show="isVideo">avi</option>	
-				<option ng-show="isVideo">avi</option>
-				<option ng-show="isVideo">flv</option>	
-				<option ng-show="isVideo">mov</option> 
-				<option ng-show="isVideo">mkv</option>	
-				<option ng-show="isVideo">mp4</option> 
-				<option ng-show="isVideo">m2ts</option>
-				<option ng-show="isVideo">ts</option>	
-				<option ng-show="isVideo">mpg</option>	
-				<option ng-show="isVideo">divx</option>
-				<option ng-show="isVideo">ogg</option>	
-				<option ng-show="isVideo">webm</option>
-				<option ng-show="isVideo">wmv</option>	
-				<option ng-show="isVideo">mp3</option>
+				<option ng-show="isVideo">AVI</option>
+				<option ng-show="isVideo">MP4</option>
+				<option ng-show="isVideo">MKV</option>
+				<option ng-show="isVideo">3GP</option>	
+				<option ng-show="isVideo">AVI</option>	
+				<option ng-show="isVideo">AVI</option>
+				<option ng-show="isVideo">FLV</option>	
+				<option ng-show="isVideo">MOV</option> 
+				<option ng-show="isVideo">MKV</option>	
+				<option ng-show="isVideo">MP4</option> 
+				<option ng-show="isVideo">M2TS</option>
+				<option ng-show="isVideo">TS</option>	
+				<option ng-show="isVideo">MPG</option>	
+				<option ng-show="isVideo">OGG</option>	
+				<option ng-show="isVideo">WEBM</option>
+				<option ng-show="isVideo">WMV</option>	
+				<option ng-show="isVideo">MP3</option>
             	<option disabled="disabled">-- Audio --</option>
-				<option>mp3</option>
-				<option>m4a</option>
-				<option>aac</option>		
-				<option>aiff</option>		
-				<option>flac</option>		
-				<option>m4a</option>		
-				<option>mp3</option>		
-				<option>mp3</option>	
-				<option>ogg</option>		
-				<option>wav</option>		
-				<option>wma</option>		
+
+				<option>MP3</option>
+				<option>AAC</option>	
+				<option>AIFF</option>
+				<option>FLAC</option>
+
+				<option ng-hide="isVideo">M4A</option>		
+				<option ng-hide="isVideo">M4A</option>		
+				<option ng-hide="isVideo">MP3</option>		
+				<option ng-hide="isVideo">MP3</option>	
+				<option ng-hide="isVideo">OGG</option>		
+				<option ng-hide="isVideo">WAV</option>		
+				<option ng-hide="isVideo">WMA</option>		
 			</select>
             <p>{{ progress }}</p>
 
@@ -53,7 +53,7 @@
 	<div ng-repeat="task in tasks | orderBy: '-id':true ">
 		<div class="panel panel-default">
 			<div class="panel-heading">
-				<h3 class="panel-title">{{ task.name }}</h3>
+				<h3 class="panel-title">{{ task.filename }} [{{ task.input }} => {{ task.output }}] ( {{ task.date | date: 'yyyy-MM-dd HH:mm:ss' }} )</h3>
 				</div>
 				<div class="panel-body">
 				<b>Input </b>: {{ task.input }}<br>
