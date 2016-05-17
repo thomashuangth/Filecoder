@@ -1,49 +1,77 @@
 <html ng-app="myApp" ng-controller="htmlController">
 	<head>
 		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Transcoder</title>
 		<!-- Style -->
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+		<link rel="stylesheet" href="/css/bootstrap.min.css">
+		<link rel="stylesheet" href="/css/style.css">
 		<!-- Scripts -->
 		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
 		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0rc1/angular-route.min.js"></script>
+		<script src="/js/angular-animate.min.js"></script>
 		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-cookies.js"></script>
 		<script src="/js/app.js"></script>
 		<script src="/js/controller.js"></script>
 
 	</head>
 	<body>
-		<nav class="navbar navbar-default">
-			<div class="container-fluid">
-				<ul class="nav navbar-nav">
-					<li><a href="/">Home</a></li>
-					<li><a ng-hide="isLoggedIn" href="/login">Login</a></li>
-					<li><a ng-hide="isLoggedIn" href="/register">Register</a></li>
-					<li><a ng-show="isLoggedIn" href="/profil">Profil</a></li>
-					<li><a ng-show="isLoggedIn" href="/tasks">Tasks</a></li>
-					<li><a href="/whoami">Who ?</a></li>
-				</ul>
-				
-				<form class="navbar-form navbar-left">
-					<div class="form-group">
-						<button class="btn btn-default" ng-show="isLoggedIn" ng-click="logOut()">Logout</button>
+		<header>
+
+			<nav class="navbar navbar-default box">
+				<div class="container">
+					<div class="row">
+						<div class="navbar-header">
+							<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#header-menu">
+								<span class="sr-only">Toggle navigation</span>
+								<span class="icon-bar"></span>
+								<span class="icon-bar"></span>
+								<span class="icon-bar"></span>
+							</button>
+							<a class="navbar-brand visible-xs" href="/">Transcoder</a>
+						</div>
+
+						<div class="collapse navbar-collapse" id="header-menu">
+							<ul class="nav navbar-nav">
+								<li><a href="/"><span class="glyphicon glyphicon-home" aria-hidden="true"></span>Home</a></li>
+								<li><a href="/tasks" ng-show="isLoggedIn"><span class="glyphicon glyphicon-tasks" aria-hidden="true"></span>Tasks</a></li>
+							</ul>
+
+							<a href="/" class="brand hidden-xs">Transcoder</a>
+
+							<ul class="nav navbar-nav navbar-right">
+								<li><a href="/login" ng-hide="isLoggedIn">Login</a></li>
+								<li><a href="/register" ng-hide="isLoggedIn">Register</a></li>
+								<li><a href="/profil" ng-show="isLoggedIn"><span class="glyphicon glyphicon-user" aria-hidden="true"></span>{{loggedUser.username ? loggedUser.username : loggedUser.email }}</a></li>
+								<form class="navbar-form navbar-left">
+									<div class="form-group">
+										<button class="btn btn-default" ng-show="isLoggedIn" ng-click="logOut()">Logout</button>
+									</div>
+								</form>
+							</ul>
+						</div>
 					</div>
-				</form>
+				</div>
+			</nav>
+
+			<div class="container panel-message">
+				<div class="info row text-success" ng-show="infos != null">
+					<ul ng-repeat="info in infos">
+						<li>{{ info }}</li>
+					</ul>
+				</div>
+				<div class="error row text-danger" ng-show="errors != null">
+					<ul ng-repeat="error in errors">
+						<li>{{ error }}</li>
+					</ul>
+				</div>
 			</div>
-		</nav>
-		<div class="info" ng-show="{{ infos }}">
-			<div ng-repeat="info in infos">
-				{{ info }}
-			</div>
-		</div>
-		<div class="error" ng-show="{{ errors }}">
-			<div ng-repeat="error in errors">
-				{{ error }}
-			</div>
-		</div>
-		<div class="container">
-			<div class="row" ng-view></div>			
-		</div>
+				
+		</header>
+			
+			
+
+		<div class="view" ng-view></div>			
 
 		<footer>
 			<hr>
@@ -51,8 +79,8 @@
 
 		<!-- Scripts -->
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
-		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
-		<script src="js/ng-file-upload-shim.min.js"></script>
-		<script src="js/ng-file-upload.min.js"></script>
+		<script src="/js/bootstrap.min.js"></script>
+		<script src="/js/ng-file-upload-shim.min.js"></script>
+		<script src="/js/ng-file-upload.min.js"></script>
 	</body>
 </html>

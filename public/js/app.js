@@ -1,4 +1,4 @@
-var myApp = angular.module('myApp', ['ngRoute', 'mainController']);
+var myApp = angular.module('myApp', ['ngRoute', 'ngAnimate', 'mainController']);
 
 myApp.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
 	$locationProvider.html5Mode({

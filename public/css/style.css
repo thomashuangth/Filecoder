@@ -1,0 +1,293 @@
+@import url(https://fonts.googleapis.com/css?family=Oxygen);
+@import url(https://fonts.googleapis.com/css?family=Montserrat);
+
+@font-face {
+    font-family: BebasNeue;
+    src: url("../fonts/BebasNeue.otf");
+}
+
+@font-face {
+	font-family: Brandon Grotesque;
+	src: url("../fonts/Brandon_bld.otf");
+}
+
+/*********************/
+/* TABLE OF CONTENTS */
+/*********************/
+
+/*-----------------------
+|						|
+|	1.  GLOBAL			|
+|	2.  HEADER			|
+|	3.  HERO			|
+|						|
+-----------------------*/
+
+/* GLOBAL */
+
+* {
+	transition: all 0.1s ease-in-out 0s;
+}
+
+body {
+	font-family: "Oxygen", Arial, sans-serif;
+}
+
+h1, h2, h3 {
+	font-family: "Brandon Grotesque", Arial, sans-serif;
+	margin: 10px 0;
+}
+
+a {
+	color: #96281B !important;
+}
+
+p {
+	font-size: 16px;
+	margin: 0;
+}
+
+.btn {
+	font-family: "Montserrat", Arial, sans-serif;
+}
+
+.btn-default {
+	font-size: 14px;
+    display: inline-block;
+    cursor: pointer;
+    padding: 5px 15px;
+    background: #96281B;
+    color: white;
+    border: solid #96281B 2px;
+    border-radius: 0;
+}
+
+.btn-default.active.focus, .btn-default.active:focus, .btn-default.active:hover, .btn-default:active.focus, .btn-default:active:focus, .btn-default:active:hover, .btn-default:hover, .btn-default.focus, .btn-default:focus, .btn-default:active {
+	color: white;
+	background: #AB5248;
+	border: solid #AB5248 2px;
+	outline: none;
+}
+
+.box {
+	box-shadow: 0 0 1px rgba(0,0,0,0.2);
+    border-radius: 2px;
+}
+
+/* HEADER */
+
+.panel-message ul {
+	margin: 0;
+}
+
+.panel-message li {
+	padding: 25px 0;
+}
+
+.navbar {
+	font-family: "Montserrat", Arial, sans-serif;
+    position: relative;
+    background: #FAFAFA;
+    border: none;
+    border-radius: 0;
+    color: #ABABAB;
+    font-size: 13px;
+    margin: 0;
+}
+
+.navbar .navbar-nav {
+	margin: 0;
+}
+
+.navbar .navbar-nav>li>a, .navbar .navbar-nav>li>a:active {
+	background: none;
+}
+
+.navbar .navbar-nav>li>a span {
+	margin-right: 8px;
+	position: relative;
+	top: 2px;
+}
+
+.navbar .navbar-nav>li>a:hover, .navbar .navbar-nav>li>a:focus {
+	color: #96281B;
+	background: rgba(150,150,150,0.1);
+	outline: none;
+}
+
+.navbar-collapse {
+	padding: 0;
+}
+
+.navbar-form {
+	border: 0;
+    text-align: right;
+    padding-right: 0;
+}
+
+.brand {
+	color: #96281B;
+	font-family: "BebasNeue", arial, sans-serif;
+	font-size: 30px;
+	position: absolute;
+	left: 0;
+	right: 0;
+	margin: auto;
+	text-align: center;
+	width: 50%;
+    line-height: 50px;
+}
+
+/* HOMEPAGE */
+
+section.hero {
+	-webkit-background-size: cover;
+	-moz-background-size: cover;
+	-o-background-size: cover;
+	background-size: cover;
+	height: calc(100vh - 50px);
+	font-size: 18px;
+	background: #E9EBEE;
+
+	display: -ms-flexbox;
+	display: -webkit-flex;
+	display: flex;
+
+	-ms-flex-align: center;
+	-webkit-align-items: center;
+	-webkit-box-align: center;
+
+	align-items: center;
+}
+
+
+section.hero > div > div > div {
+	background: #FFFFFF;
+	padding: 50px;
+	position: relative;
+	bottom: 25px;
+}
+
+/* UPLOAD */
+
+.start {
+	margin-top: 40px;
+	font-size: 28px;
+	padding: 5px 100px;
+}
+
+.uploadForm {
+	display: none;
+	margin: 25px 0;
+}
+
+.uploadForm .inputFile {
+	width: 0.1px;
+	height: 0.1px;
+	opacity: 0;
+	overflow: hidden;
+	position: absolute;
+	z-index: -1;
+}
+
+.uploadForm .inputFile:focus + label {
+    color: white;
+	background: #AB5248;
+	border: solid #AB5248 2px;
+	outline: none;
+}
+
+.uploadForm .file-preview {
+	display: none;
+	height: 0;
+	overflow: hidden;
+	margin: 0;
+}
+
+.uploadForm video, .uploadForm audio {
+	height: 100%; 
+}
+
+
+
+/* ANIMATIONS */
+
+/*
+ * FadeIn animation
+*/
+@-webkit-keyframes fadeIn {
+    0% {opacity: 0;}
+    100% {opacity: 1;}
+}
+@keyframes fadeIn {
+    0% {opacity: 0;}
+    100% {opacity: 1;}
+}
+.fadeIn {
+    -webkit-animation-name: fadeIn;
+    animation-name: fadeIn;
+}
+/*
+ * FadeOut animation
+*/
+@-webkit-keyframes fadeOut {
+    0% {opacity: 1;}
+    100% {opacity: 0;}
+}
+@keyframes fadeOut{
+    0% {opacity: 1;}
+    100% {opacity: 0;}
+}
+.fadeOut {
+    -webkit-animation-name: fadeOut;
+    animation-name: fadeOut;
+}
+
+.ng-enter           { animation: fadeIn 0.2s both ease-in; z-index: 8888; }
+/* .ng-leave           { animation: fadeOut 0.2s both ease-in; z-index: 9999; } */
+
+
+/* RESPONSIVE */
+
+@media (max-width: 991px) {
+	section.hero {
+		display: block;
+		padding-top: 10vh;
+	}
+}
+
+@media (max-width: 767px) {
+	.navbar-form {
+	    text-align: center;
+	    padding-right: 15px;
+	}
+
+	section.hero {
+		padding-top: 0;
+	}
+
+	section.hero > div > div > div {
+		bottom: 0;
+	}
+
+}
+
+@media (max-width: 480px) {
+	h1 {
+		font-size: 24px;
+	}
+
+	p {
+		font-size: 14px;
+	}
+
+	section.hero > div > div > div {
+		padding: 10px 20px;
+		bottom: 0;
+	}
+
+	.uploadForm .file-preview {
+		display: none !important;
+	}
+
+}

@@ -31,6 +31,11 @@ mainController.controller('htmlController', ['$scope', '$rootScope', '$http', '$
 			});
 	};
 
+	$rootScope.clearMessage = function() {
+		$rootScope.infos = [];
+		$rootScope.errors = [];
+	};
+
 	$scope.logOut = function() {
 		$http.get('/logout')
 			.success(function(data) {
@@ -176,22 +181,48 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 			.error(function(data) {
 				console.log('Errors: ' + data);
 			});
+
+			$scope.videoPreview = $('.file-preview video');
+			$scope.audioPreview = $('.file-preview audio');
 	};
 
+	$('.start').click(function() {
+		$('.uploadForm').slideDown();
+		$(this).fadeOut();
+	});
+
 	$scope.checkFile = function() {
+		$rootScope.clearMessage();
+
 		//Reset select options
 		$('.output-select').prop("selectedIndex", 0);
 		$('.btn-upload').attr('disabled', 'disabled');
 		$('.output-select').attr('disabled', 'disabled');
+		$('.filename').empty();
+		$('.file-preview').animate({ 'overflow': "hidden", 'height': 0, 'margin-bottom': 0 }, { duration: 300 }).empty().hide();
+
 		//Show every output
 		$('.output-select option').show();
 
+		//Check Size and Pattern for errors
+		if ($scope.upload_form.file.$error.maxSize) {
+			$rootScope.errors.push("Maximum file size is 700MB");
+		};
+		if ($scope.upload_form.file.$error.pattern) {
+			$rootScope.errors.push("Your file is not an audio nor a video");
+		};
+
 		if ($scope.file) {
+			var previewHeight = 250;
+
 			//Check if the file type is a video
 			if ($scope.file.type.split('/')[0] == "video") {
 				$scope.isVideo = true;
+				$('.file-preview').html($scope.videoPreview);
 			} else {
 				$scope.isVideo = false;
+				$('.file-preview').html($scope.audioPreview);
+				previewHeight = 30;
 			};
 			//Check type and size requirements
 			if (!$scope.upload_form.file.$error.maxSize && !$scope.upload_form.file.$error.pattern) {
@@ -200,6 +231,10 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 			};
 			//Remove current input in output
 			$('.output-select option:contains(' + ($scope.file.name.split('.')[$scope.file.name.split('.').length -1]).toUpperCase() + ')').hide();
+
+			//Show preview
+			$('.filename').html($scope.file.name);
+			$('.file-preview').show().delay(1000).animate({ 'overflow': "visible", 'height': previewHeight, 'margin-bottom': 15 }, { duration: 300 });
 		};
 
 	};
