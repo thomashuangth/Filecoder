@@ -7,10 +7,12 @@ var User = model.user;
 var Task = model.task;
 var multer = require("multer");
 var fs = require("fs");
+var paypal = require('paypal-rest-sdk');
 
 var config = require("../config");
 
 "use strict";
+
 /*****************
 *** LOCAL AUTH ***
 ******************/
@@ -71,9 +73,124 @@ router.get("/auth/google/callback",
     })
 );
 
+/*************
+*** PAYPAL ***
+**************/
+
+paypalInit();
+
+function paypalInit() {
+	console.log('Paypal Initialisation');
+	paypal.configure(config.paypal);
+};
+
+router.get('/paypal/create/:price', function(req, res) {
+	console.log("[Route] GET Paypal create".cyan);
+	var payment = {
+		"intent": "sale",
+		"payer": {
+			"payment_method": "paypal"
+		},
+		"redirect_urls": {
+			"return_url": "http://" + config.domain + ":" + config.serverPort + "/paypal/execute",
+			"cancel_url": "http://" + config.domain + ":" + config.serverPort + "/paypal/cancel"
+		},
+		"transactions": [
+        {
+            "amount": {
+                "total": req.params.price,
+                "currency": "USD",
+                "details": {
+                    "subtotal": req.params.price,
+                    "tax": "0.00",
+                    "shipping": "0.00"
+                }
+            },
+            "description": "Transcoder Conversion Payment.",
+            "item_list": { 
+                "items":[
+                    {
+                        "quantity":"1", 
+                        "name":req.params.price + " Hour(s)", 
+                        "price":req.params.price,
+                        "currency":"USD"
+                    }
+                ]
+            }
+        }
+    ]
+	};
+	paypalCreation(payment, req, res);
+});
+
+router.get('/paypal/execute', function(req, res) {
+	console.log("[Route] GET Paypal execute".cyan);
+	var paymentId = req.session.paymentId;
+	var payerId = req.query.PayerID;
+	var details = { "payer_id": payerId };
+
+	paypal.payment.execute(paymentId, details, function (err, payment) {
+		if (err) {
+			console.log(err);
+			console.log('Paypal execute error'.red);
+			res.redirect('/partials/after-pay.html?failure');
+		} else {
+			console.log('Paypal execute success'.green);
+			res.redirect('/partials/after-pay.html?success');
+		};
+	})
+});
+
+router.get('/paypal/cancel', function(req, res) {
+	console.log("Paypal canceled".red);
+	res.send("The payment got canceled");
+});
+
+
+function paypalCreation(payment, req, res) {
+	paypal.payment.create(payment, function(err, payment) {
+		if (err) {
+			console.log(err);
+			console.log("Paypal payment creation error".red);
+		} else {
+			if (payment.payer.payment_method === 'paypal') {
+				
+				req.session.paymentId = payment.id;
+				var redirectUrl;
+				for (var i = 0; i < payment.links.length; i++) {
+					var link = payment.links[i];
+					if (link.method === 'REDIRECT') {
+						redirectUrl = link.href;
+					};
+				}
+
+				res.redirect(redirectUrl);
+
+			};
+		};
+	})
+};
+
 /***********
 *** TASK ***
 ************/
+
+router.get("/task/get/:id", isAuthenticated, function(req, res) {
+
+	Task.findOne({_id: req.params.id}, function(err, task) {
+		if (err) {
+			console.log("Finding current task error".red);
+			res.send(err);
+		};
+			
+		if (task) {
+			console.log(task.name + " found".green);
+			
+			res.json(task);
+		};
+	});
+
+});
 
 router.get("/task/get", isAuthenticated, function(req, res) {
 
@@ -82,7 +199,6 @@ router.get("/task/get", isAuthenticated, function(req, res) {
 });
 
 router.post("/task/create", isAuthenticated, function(req, res) {
-
 	console.log("Creating new task...");
 	var task = new Task({
 		owner: req.user.email, 
@@ -90,7 +206,8 @@ router.post("/task/create", isAuthenticated, function(req, res) {
 		output: req.body.output, 
 		input: req.body.input, 
 		type: req.body.type, 
-		filename: req.body.filename
+		filename: req.body.filename,
+		duration: req.body.duration,
 	});
 
 	task.save(function(err){
@@ -104,6 +221,18 @@ router.post("/task/create", isAuthenticated, function(req, res) {
 
 	getTasksFromUser(req.user.email, res);
 
+});
+
+router.get("/task/update/:id", isAuthenticated, function(req, res) {
+	Task.update({_id: req.params.id}, {status: "Paid"}, function(err){
+		if (err) {
+			console.log(err);
+			console.log("Can't update the paid task".red);
+		} else {
+			console.log("The task is now paid".green);
+			res.send("The task is now paid");
+		};
+	});
 });
 
 router.delete("/task/delete/:id", isAuthenticated, function(req, res) {
@@ -174,8 +303,8 @@ router.post("/upload", isAuthenticated, function(req, res) {
 				
 			if (task) {
 				console.log(task.name + " already exists".red);
-				res.json({error_code: 1, err_desc: task.name + " already exists"});
-				return;
+				/*res.json({error_code: 1, err_desc: task.name + " already exists"});
+				return;*/
 			};
 
 			var filename = req.body.filename;
@@ -212,7 +341,7 @@ router.post("/upload", isAuthenticated, function(req, res) {
 				fs.rename(config.iscsiServer + "tmp/" + req.file.originalname, config.iscsiServer + "uploads/" + req.user.email + "/" + req.body.filename, function(err) {
 				    if ( err ) console.log("ERROR: " + err);
 				    console.log("Upload of ".green + req.body.filename + " success !".green);
-					res.json({error_code:0, err_desc: null});
+					res.json({error_code:0, err_desc: null, filename: filename});
 				});
 			}
 		});
@@ -237,6 +366,16 @@ router.get("/tasks", isAuthenticated, function(req, res) {
 	res.sendFile(path.join(__dirname, "../../public", "index.html"));
 	console.log("[Route] GET Tasks".cyan);
 });
+
+router.get("/pay", isAuthenticated, function(req, res) {
+	res.redirect("/");
+	console.log("[Route] GET Pay".cyan);
+})
+
+router.get("/convert", isAuthenticated, function(req, res) {
+	res.sendFile(path.join(__dirname, "../../public", "index.html"));
+	console.log("[Route] GET Convert".cyan);
+})
 
 /* WHO AM I */
 router.get("/whoami", isAuthenticated, function(req, res) {

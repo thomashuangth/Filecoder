@@ -6,4 +6,9 @@ module.exports = {
 	'databaseName' 	: 'transcoder',			/* transcoder */
 	'domain'		: 'transcoder.com', 	/* Don't forget to change Social Network Callback URI */
 	'iscsiServer'	: '/mnt/isci/' 			/* /mnt/iscsi/ */
+
+	'paypal' : {
+		'client_id'		: 'AXwGfKoKJxre0qqLXflMwqHWRNh3a1eyln7DuLYbOlSiU5T8F7dJEZaJsrvmFWXAbowBGTXscEkEHexJ',
+		'client_secret'	: 'EMYmCkiUvo0n2gPV2je8c0lYZX-C6kCt0_513UVeu9tTkLCQ9PtfZ_Qo4jB8z3ReB3RO84oEka0CmVVz'
+	}
 }

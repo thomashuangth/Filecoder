@@ -31,7 +31,6 @@ mainController.controller('htmlController', ['$scope', '$rootScope', '$http', '$
 			});
 	};
 
-
 	$scope.logOut = function() {
 		$http.get('/logout')
 			.success(function(data) {
@@ -45,6 +44,12 @@ mainController.controller('htmlController', ['$scope', '$rootScope', '$http', '$
 				console.log('Errors: ' + data);
 			});
 	};
+
+	$scope.popupWindow = function(url, title, w, h) {
+		var left = (screen.width/2)-(w/2);
+		var top = (screen.height/2)-(h/2);
+		window.open(url, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width='+w+', height='+h+', top='+top+', left='+left);
+	} 
 	
 }]);
 
@@ -159,15 +164,9 @@ mainController.controller('authenticationController', ['$scope', '$rootScope', '
 			});
 	}
 
-	$scope.popupWindow = function(url, title, w, h) {
-		var left = (screen.width/2)-(w/2);
-		var top = (screen.height/2)-(h/2);
-		window.open(url, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width='+w+', height='+h+', top='+top+', left='+left);
-	} 
-
 }]);
 
-mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'Upload', function($scope, $rootScope, $http, Upload) {
+mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'Upload', '$location', function($scope, $rootScope, $http, Upload, $location) {
 	
 	if ($rootScope.isLoggedIn) {
 		$http.get('/task/get')
@@ -225,11 +224,13 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 			};
 			$scope.file.filename = $scope.task.filename = "ENC_" + $scope.file.output + "_" + $scope.file.name;
 			$scope.task.type = $scope.file.type.split('/')[0];
-		};
-		
-		if($scope.upload_form.file.$valid && $scope.file) {
-			$scope.upload($scope.file);
-		};
+			Upload.mediaDuration($scope.file).then(function(durationInSeconds) {
+				$scope.task.duration = durationInSeconds;
+				if($scope.upload_form.file.$valid) {
+					$scope.upload($scope.file);
+				};
+			});
+		};	
 				
 	};
 
@@ -241,6 +242,7 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 		}).then(function (resp) {
 			if (resp.data.error_code === 0) {
 				$rootScope.infos.push("Success " + resp.config.data.file.name + " uploaded.");
+				$scope.task.filename = resp.data.filename;
 				$scope.createTask($scope.task);
 				$scope.file = {};
 				$scope.task = {};
@@ -275,6 +277,67 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 			.error(function(data) {
 				$rootScope.errors.push("Task not deleted");
 			});
+	};
+
+	$scope.convert = function(taskId, taskStatus) {
+		$rootScope.currentTask = taskId;
+		if (taskStatus == "Paid") {
+			$location.path('/convert');
+		} else {
+			$location.path('/pay');
+		};
+	};
+
+}]);
+
+mainController.controller('payController', ['$scope', '$rootScope', '$http', function($scope, $rootScope, $http) {
+	
+	$http.get('/task/get/' + $rootScope.currentTask)
+		.success(function(data) {
+			$scope.task = data;
+			$scope.task.price = getPrice(data);
+		})
+		.error(function(data) {
+			$rootScope.errors.push("No task found");
+		})
+
+	$scope.pay = function(price) {
+		$scope.popupWindow('paypal/create/' + price, 'Paypal Payment', 800, 800);
+	};
+
+	window.paid = function() {
+		$http.get('/task/update/' + $rootScope.currentTask)
+			.success(function(data) {
+				$location.path('/convert');
+			})
+			.error(function(data) {
+				$rootScope.errors.push("Can't update the task, but it has been paid");
+			});
+	};
+
+	function getPrice(task) {
+
+		var hours = Math.floor(task.duration / (60 * 60));
+
+		var divisor_for_minutes = task.duration % (60 * 60);
+		var minutes = Math.floor(divisor_for_minutes / 60);
+
+		var divisor_for_seconds = divisor_for_minutes % 60;
+		var seconds = Math.ceil(divisor_for_seconds);
+		if (hours > 0) {
+			$scope.task.formatDuration = hours + " hour " + minutes + " minutes and " + seconds + " seconds";
+		} else if (minutes > 0) {
+			$scope.task.formatDuration = minutes + " minutes and " + seconds + " seconds";
+		} else {
+			$scope.task.formatDuration = seconds + " seconds"
+		};
+
+		if (hours == 0) {
+			return 1;
+		};
+
+		return hours;
+
 	};
 
 }]);

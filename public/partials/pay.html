@@ -1,0 +1,16 @@
+<div class="col-md-12">
+	<h2>Payment</h2>
+	<hr>
+	<h3 class="text-center">One more step...</h3>
+	<div class="row">
+		<div class="col-sm-12">
+			<p>Your file is {{ task.formatDuration }} long so you need to pay {{ task.price }}$ (US dollars)</p>
+			<button class="btn btn-info" ng-click="pay(task.price)">Paypal</button>
+			<p>For more information, check our pricing page</p>
+		</div>
+	</div>
+</div>
+
+<div class="row" ng-hide="isLoggedIn">
+	<h2>Please Login or Register</h2>
+</div>

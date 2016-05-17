@@ -25,8 +25,19 @@ myApp.config(['$routeProvider', '$locationProvider', function($routeProvider, $l
 			templateUrl: '../partials/tasks.html',
 			controller: 'taskController'
 		}).
+		when('/pay', {
+			templateUrl: '../partials/pay.html',
+			controller: 'payController'
+		}).
+		when('/convert', {
+			templateUrl: '../partials/convert.html',
+			controller: 'taskController'
+		}).
 		when('/after-auth', {
 			templateUrl: '../partials/after-auth.html'
+		}).
+		when('/after-pay', {
+			templateUrl: '../partials/after-pay.html'
 		}).
 		otherwise({
 			redirectTo: '/home'

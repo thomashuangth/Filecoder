@@ -1,0 +1,12 @@
+<script type="text/javascript">
+if (window.opener) {
+	window.opener.focus();
+	if (window.location.search.replace("?", "") == "success") {
+		window.opener.paid();	
+	};
+	window.close();
+} else {
+	location.href('/');
+}
+
+</script>  
