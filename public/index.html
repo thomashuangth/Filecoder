@@ -19,7 +19,7 @@
 	<body>
 		<header>
 
-			<nav class="navbar navbar-default box">
+			<nav class="navbar navbar-default">
 				<div class="container">
 					<div class="row">
 						<div class="navbar-header">
@@ -34,23 +34,23 @@
 
 						<div class="collapse navbar-collapse" id="header-menu">
 							<ul class="nav navbar-nav">
-								<li><a href="/"><span class="glyphicon glyphicon-home" aria-hidden="true"></span>Home</a></li>
-								<li><a href="/tasks" ng-show="isLoggedIn"><span class="glyphicon glyphicon-tasks" aria-hidden="true"></span>Tasks</a></li>
+								<li><a href="/"><span class="glyphicon glyphicon-home"></span>Home</a></li>
+								<li><a href="/tasks" ng-show="isLoggedIn"><span class="glyphicon glyphicon-tasks"></span>Tasks</a></li>
 							</ul>
 
 							<a href="/" class="brand hidden-xs"><img src="/img/Filecoder Brand.png" alt=""></a>
 
 							<ul class="nav navbar-nav navbar-right">
-								<li><a href="/login" ng-hide="isLoggedIn">Login</a></li>
-								<li><a href="/register" ng-hide="isLoggedIn">Register</a></li>
+								<li><a href="/login" ng-hide="isLoggedIn"><span class="glyphicon glyphicon-user"></span>Login</a></li>
+								<li><a href="/register" ng-hide="isLoggedIn"><span class="glyphicon glyphicon-pencil"></span>Register</a></li>
 								<li>
 									<a href="/profil" ng-show="isLoggedIn">
-										<span class="glyphicon glyphicon-user" aria-hidden="true"></span>{{ loggedUser.username ? loggedUser.username : loggedUser.email }}
+										<span class="glyphicon glyphicon-user"></span>{{ loggedUser.username ? loggedUser.username : loggedUser.email }}
 									</a>
 								</li>
-								<form class="navbar-form navbar-left">
+								<form class="navbar-form navbar-left" ng-show="isLoggedIn">
 									<div class="form-group">
-										<button class="btn btn-default" ng-show="isLoggedIn" ng-click="logOut()">Logout</button>
+										<button class="btn btn-default" ng-click="logOut()">Logout</button>
 									</div>
 								</form>
 							</ul>
@@ -60,16 +60,27 @@
 			</nav>
 
 			<div class="container panel-message">
-				<ul class="info row text-success" ng-hide="infos | isEmpty">
-					<li ng-repeat="info in infos">
-						{{ info }}
-					</li>
-				</ul>
-				<ul class="error row text-danger" ng-hide="errors | isEmpty">
-					<li ng-repeat="error in errors">
-						{{ error }}
-					</li>
-				</ul>
+
+				<div class="row" ng-hide="infos | isEmpty">
+					<div class="col-md-offset-2 col-md-8 box">
+						<ul class="info row text-success">
+							<li ng-repeat="info in infos">
+								{{ info }}
+							</li>
+						</ul>
+					</div>
+				</div>
+				
+				<div class="row" ng-hide="errors | isEmpty">
+					<div class="col-md-offset-2 col-md-8 box">
+						<ul class="error row text-danger">
+							<li ng-repeat="error in errors">
+								{{ error }}
+							</li>
+						</ul>
+					</div>
+				</div>
+								
 			</div>
 				
 		</header>

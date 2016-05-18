@@ -76,39 +76,6 @@ mainController.controller('htmlController', ['$scope', '$rootScope', '$http', '$
 
 mainController.controller('homeController', ['$scope', '$rootScope', '$http', '$cookies', function($scope, $rootScope, $http, $cookies) {
 
-	
-	
-	/*$http.get('/get')
-		.success(function(data) {
-			$scope.customers = data;
-			console.log(data);
-		})
-		.error(function(data) {
-			console.log('Errors: ' + data);
-		});
-
-	$scope.createCustomer = function() {
-		$http.post('/add', $scope.customer)
-			.success(function(data) {
-				$scope.customer = {};
-				$scope.customers = data;
-				console.log(data);
-			})
-			.error(function(data) {
-				console.log('Errors: ' + data);
-			});
-	}
-
-	$scope.deleteCustomer = function(id) {
-		$http.delete('/delete/' + id)
-			.success(function(data) {
-				$scope.customers = data;
-				console.log(data);
-			})
-			.error(function(data) {
-				console.log('Errors: ' + data);
-			})
-	}*/
 
 }]);
 
@@ -124,24 +91,50 @@ mainController.controller('detailsController', ['$scope', '$http', '$routeParams
 
 mainController.controller('authenticationController', ['$scope', '$rootScope', '$http', '$cookies', '$location', function($scope, $rootScope, $http, $cookies, $location) {
 	$scope.createUser = function() {
-		if (typeof $scope.user == "undefined" || typeof $scope.user.email == "undefined" || typeof $scope.user.password == "undefined") {
+		$rootScope.clearMessage();
+		if (typeof $scope.user == "undefined" || typeof $scope.user.email == "undefined" || typeof $scope.user.password == "undefined" ) {
+			$rootScope.errors.push("Please fill all the required field");
 			return false;
 		};
+
+		if ($scope.user.password !== $scope.user.passwordConfirm) {
+			$rootScope.errors.push("Passwords does not match.");
+			return false;
+		};
+		
 		$http.post('/register', $scope.user)
 			.success(function(data) {
-				$location.path('/');
+				console.log(data);
+				$rootScope.infos.push("Registration successful !");
+				$rootScope.loggedUser = data;
+				$rootScope.isLoggedIn = true;
+
+				var today = new Date();
+				var expired = new Date(today);
+				expired.setDate(today.getDate() + 1); //Set expired date to tomorrow
+				$cookies.putObject('FCCurrentUser', data, {expire : expired });
+				console.log("Cookie created : " + $cookies);
+				$(".register-box").slideUp();
+				$(".register-success").slideDown();
 			})
 			.error(function(data) {
-				if (typeof $scope.user !== 'undefined')
-					$scope.user.password = "";
-				console.log('Errors: ' + data);
+				if (typeof $scope.user !== 'undefined') {
+					$scope.user.password = $scope.user.passwordConfirm = "";
+				};
+					
+				$rootScope.errors.push(data);
 			});
 	}
 
 	$scope.logIn = function() {
-		if (typeof $scope.user == "undefined" || typeof $scope.user.email == "undefined" || typeof $scope.user.password == "undefined") {
+		$rootScope.clearMessage();
+		
+		//Second check input
+		if (typeof $scope.user == "undefined" || typeof $scope.user.email == "undefined" || typeof $scope.user.password == "undefined" ) {
+			$rootScope.errors.push("Please fill all the required field");
 			return false;
 		};
+
 		$http.post('/login', $scope.user)
 			.success(function(data) {
 				$rootScope.loggedUser = data;
@@ -158,7 +151,7 @@ mainController.controller('authenticationController', ['$scope', '$rootScope', '
 			.error(function(data) {
 				if (typeof $scope.user !== 'undefined')
 					$scope.user.password = "";
-				console.log('Errors: ' + data);
+				$rootScope.errors.push(data);
 			});
 	}
 
@@ -225,7 +218,6 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 	});
 
 	$(".tasks-list").on("click", ".task", function() {
-		console.log($(this));
 		$(this).next().slideToggle(200, function() {
 			if ($(this).is(':visible'))
 				$(this).css('display','inline-block');
@@ -343,6 +335,7 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 	};
 
 	$scope.createTask = function(task) {
+		$rootScope.clearMessage();
 		$http.post('/task/create', task)
 			.success(function(data) {
 				$rootScope.infos.push("Task created");
@@ -354,6 +347,7 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 	};
 
 	$scope.deleteTask = function(taskId) {
+		$rootScope.clearMessage();
 		$http.delete('/task/delete/' + taskId)
 			.success(function(data) {
 				$scope.tasks = data;
@@ -387,9 +381,6 @@ mainController.controller('payController', ['$scope', '$rootScope', '$http', '$l
 		console.log("Cookie created : " + $cookies);
 	}
 
-	
-
-	console.log($rootScope.currentTask);
 	$http.get('/task/get/' + $rootScope.currentTask)
 		.success(function(data) {
 			$scope.task = data;

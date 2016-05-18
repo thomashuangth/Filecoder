@@ -23,8 +23,25 @@ router.get("/login", isNotAuthenticated, function(req, res) {
 	res.sendFile(path.join(__dirname, "../../public", "index.html"));
 });
 
-router.post("/login", passport.authenticate("login"), function(req, res) {
-	console.log("[Route] POST Login".cyan);
+router.post("/login", function(req, res, next) {
+	passport.authenticate("login", function(err, user, info) {
+		console.log("[Route] POST Login".cyan);
+		console.log(info);
+		if (err) {
+			return res.send(err);
+		};
+		if (!user) {
+			return res.status(500).send(info.message);
+		};
+
+		req.login(user, function(err) {
+			if (err) {
+				return res.status(500).send(err);
+			};
+			return res.json(user);
+		});
+	})(req, res, next);
+}, function(req, res) {
 	res.json(req.user);
 });
 
@@ -34,8 +51,25 @@ router.get("/register", isNotAuthenticated, function(req, res) {
 	res.sendFile(path.join(__dirname, "../../public", "index.html"));
 });
 
-router.post("/register", passport.authenticate("register"), function(req, res) {
-	console.log("[Route] POST Register".cyan);
+router.post("/register", function(req, res, next) {
+	passport.authenticate("register", function(err, user, info) {
+		console.log("[Route] POST Register".cyan);
+		console.log(info);
+		if (err) {
+			return res.send(err);
+		};
+		if (!user) {
+			return res.status(500).send(info.message);
+		};
+
+		req.login(user, function(err) {
+			if (err) {
+				return res.status(500).send(err);
+			};
+			return res.json(user);
+		});
+	})(req, res, next);
+}, function(req, res) {
 	res.json(req.user);
 });
 

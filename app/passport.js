@@ -63,11 +63,11 @@ module.exports = function(app) {
 				};
 				if (!user) {
 					console.log('No user found'.red);
-					return done(null, false);
+					return done(null, false, { message: "No user found."});
 				};
 				if (!user.validPassword(password)) {
-					console.log('Password does not match'.red)
-					return done(null, false);
+					console.log('Password does not match.'.red)
+					return done(null, false, { message: "Password does not match"});
 				};
 
 				console.log('Login successful ! (User '.green + email + ') '.green  + new Date().toString().grey);
@@ -80,11 +80,12 @@ module.exports = function(app) {
 
 	passport.use('register', new LocalStrategy({
 		usernameField : 'email',
-        passwordField : 'password'
+        passwordField : 'password',
+        passReqToCallback : true
 	},
-	function(email, password, done) {
+	function(req, email, password, done) {
 		process.nextTick(function() {
-			var profile = {id: 0, email: email, password: password}
+			var profile = {id: 0, email: email, password: password, username: req.body.username}
 			getUserOrCreateUser(profile, 'local', done);
 		});
 	}));
@@ -155,7 +156,7 @@ module.exports = function(app) {
 					return done(null, user.google);
 				};
 				console.log('User already exists'.red);
-				return done(null, false);
+				return done(null, false, { message: "User already exists"});
 			}
 			
 			var newUser = new User();
@@ -163,6 +164,7 @@ module.exports = function(app) {
 			if (context == "local") {
 				newUser.local.email = profile.email;
 				newUser.local.password = newUser.generateHash(profile.password);
+				newUser.local.username = profile.username;
 			} else if (context == "facebook") {
 				console.log('Importing facebook user in database'.green)
 				newUser.facebook.id    = profile.id;            
@@ -180,12 +182,12 @@ module.exports = function(app) {
 			newUser.save(function(err) {
 				if (err) {
 					console.log('Error in saving user'.red);
-					throw err;
+					return done(err);
 				};
 
 				if (context == "local") {
 					console.log('Registration succesful (User '.green + profile.email + ') '.green + new Date().toString().grey);
-					return done(null, newUser);
+					return done(null, newUser.local);
 				} else if (context == "facebook") {
 					console.log('Register Facebook successful ! (User '.green + newUser.facebook.email + ') '.green  + new Date().toString().grey);
                     return done(null, newUser.facebook);

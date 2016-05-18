@@ -2,11 +2,50 @@
 	<section>
 		<div class="container">
 			<div class="row">
-				<div class="col-xs-12">
-					<h2 class="latest-tasks">All tasks</h2>
+				<div class="col-md-12 box">
+					<h1 class="latest-tasks">All tasks</h1>
 					<hr>
+					<form class="tasks-filter">
+						<div class="form-group">
+							<input type="search" class="form-control" ng-model="searchTask" placeholder="Search for a task...">
+						</div>
+						<div class="row">
+							<div class="form-group col-md-2">
+								<select name="filter-status" class="form-control" ng-model="searchStatus">
+									<option value="" ng-selected>Status</option>
+									<option value="pending">Filter by Pending</option>
+									<option value="paid">Filter by Paid</option>
+									<option value="converted">Filter by Converted</option>
+								</select>
+							</div>
+							<div class="form-group col-md-2">
+								<select name="filter-type" class="form-control" ng-model="searchType">
+									<option value="" ng-selected>Type</option>
+									<option value="video">Filter by Video</option>
+									<option value="audio">Filter by Audio</option>
+								</select>
+							</div>
+							<div class="form-group col-md-2">
+								<select name="order-tasks" class="form-control" ng-model="searchFilter">
+									<option value="date">Order by</option>
+									<option value="name">Order by Name</option>
+									<option value="date" ng-selected="true">Order by Date</option>
+									<option value="status">Order by Status</option>
+									<option value="type">Order by Type</option>
+									<option value="size">Order by Size</option>
+								</select>
+							</div>
+							<div class="form-group col-md-6">
+								<label class="checkbox-inline">
+									<input type="checkbox" value="false" ng-model="searchOrder" ng-true-value="false" ng-false-value="true"> Ascending
+								</label>
+							</div>
+						</div>
+					</form>
+					<h2>{{ (tasks| orderBy:searchFilter:searchOrder | filter:searchTask).length }} Tasks found</h2>
+
 					<ul class="list-group tasks-list">
-						<li class="list-group-item task" ng-repeat-start="task in tasks | orderBy:'-id':true">
+						<li class="list-group-item task" ng-repeat-start="task in tasks | orderBy:searchFilter:(searchOrder == false ? searchOrder : true) | filter:{ filename: searchTask } | filter:{ status: searchStatus } | filter:{ type: searchType }">
 							<span class="badge pull-left">{{ task.status }}</span>
 							&nbsp {{ task.filename }} [{{ task.input }} to {{ task.output }}]
 							<span class="pull-right">
