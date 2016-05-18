@@ -1,36 +1,46 @@
-<div class="col-md-12">
-	<h2>Convert</h2>
-	<hr>
-	<h3 class="text-center">Converting</h3>
-	<div class="row">
-		<div class="col-sm-12">
-			<p>Your file is now converting, please wait until the process is finished...</p>
-			<p>Meanwhile, you can convert more files</p>
-			{{ currentTask }}
-		</div>
-	</div>
-	<hr>
-	<h3>Check the other tasks</h3>
-	<div class="row">
-		<div class="col-sm-4" ng-repeat="task in tasks | orderBy:'-id':true | limitTo:10">
-			<div class="panel panel-default">
-				<div class="panel-heading">
-					<h3 class="panel-title">{{ task.filename }} [{{ task.input }} => {{ task.output }}] ( {{ task.date | date: 'yyyy-MM-dd HH:mm:ss' }} )</h3>
-				</div>
-				<div class="panel-body">
-					<b>Status </b>: {{ task.status }}<br>
-					<b>Input </b>: {{ task.input }}<br>
-					<b>Output </b>: {{ task.output }}<br>
-					<b>Filename </b>: {{ task.filename }}<br>
-					<b>Media Type</b> : {{ task.type }}
-					<button class="btn btn-success" ng-click="convert(task._id, task.status)">Convert</button>
-					<button class="btn btn-danger" ng-click="deleteTask(task._id)">Delete</button>
+<div class="convert" ng-show="isLoggedIn">
+	<section>
+		<div class="container">
+			<div class="row">
+				<h2>Convert</h2>
+				<div class="row">
+					<div class="col-sm-12">
+						<p>Your file is now converting, please wait until the process is finished...</p>
+						<p>Meanwhile, you can convert more files</p>
+						{{ currentTask }}
+						
+					</div>
 				</div>
 			</div>
 		</div>
-	</div>
-</div>
+	</section>
 
-<div class="row" ng-hide="isLoggedIn">
-	<h2>Please Login or Register</h2>
+	<section ng-show="isLoggedIn">
+		<div class="container">
+			<div class="row">
+				<div class="col-xs-12">
+					<h2 class="latest-tasks">Latest Tasks</h2>
+					<ul class="list-group tasks-list">
+						<li class="list-group-item task" ng-repeat-start="task in tasks | orderBy:'-id':true">
+							<span class="badge pull-left">{{ task.status }}</span>
+							&nbsp {{ task.filename }} [{{ task.input }} to {{ task.output }}]
+							<span class="pull-right">
+								{{ task.date | date: 'yyyy-MM-dd HH:mm:ss' }} &nbsp
+								<span class="badge badge-2 pull-right">{{ task.type }}</span>
+							</span>
+							
+						</li>
+						<li class="list-group-item task-control text-center" ng-repeat-end>
+							<button class="btn btn-control" ng-click="convert(task._id, task.status)"><span class="glyphicon glyphicon-flash"></span>Convert</button>
+							<button class="btn btn-control" ng-click="deleteTask(task._id)"><span class="glyphicon glyphicon-remove"></span>Delete</button>
+						</li>
+					</ul>
+					<div class="row text-center">
+						<a href="/tasks" class="btn btn-default">All Tasks</a>
+					</div>
+				
+				</div>
+			</div>
+		</div>
+	</section>
 </div>

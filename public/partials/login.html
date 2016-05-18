@@ -1,17 +1,26 @@
-<div class="row">
-	<h2>Login</h2>
-	<form>
-		<div class="form-group">
-			<input type="email" class="form-control" placeholder="Email" ng-model="user.email" required><br>
-			<input type="password" class="form-control" placeholder="Password" ng-model="user.password" required><br>
+<div class="login">
+	<section>
+		<div class="container">
+			<div class="row">
+				<div class="col-xs-12">
+					<h2>Login</h2>
+					<form>
+						<div class="form-group">
+							<input type="email" class="form-control" placeholder="Email" ng-model="user.email" required><br>
+							<input type="password" class="form-control" placeholder="Password" ng-model="user.password" required><br>
 
-			<button type="submit" class="btn btn-success" ng-click="logIn()">Login</button>
+							<button type="submit" class="btn btn-default" ng-click="logIn()">Login</button>
+						</div>
+					</form>
 
-			<h3>Login or Register with:</h3>
+					<hr>
 
-        	<button class="btn btn-primary" ng-click="popupWindow('auth/facebook', 'Facebook Connect', 800, 800);"><span class="fa fa-facebook"></span> Facebook</button>
-			<button class="btn btn-danger" ng-click="popupWindow('auth/google', 'Facebook Connect', 800, 800);"><span class="fa fa-google-plus"></span> Google</button>
+					<h2>Login or Register with:</h2>
+
+		        	<button class="btn btn-primary facebook" ng-click="popupWindow('auth/facebook', 'Facebook Connect', 800, 800);"><span class="fa fa-facebook"></span> Facebook</button>
+					<button class="btn btn-danger google" ng-click="popupWindow('auth/google', 'Facebook Connect', 800, 800);"><span class="fa fa-google-plus"></span> Google</button>
+				</div>
+			</div>
 		</div>
-	</form>
+	</section>
 </div>
-	

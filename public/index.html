@@ -5,6 +5,7 @@
 		<title>Transcoder</title>
 		<!-- Style -->
 		<link rel="stylesheet" href="/css/bootstrap.min.css">
+		<link rel="stylesheet" href="/css/font-awesome.min.css">
 		<link rel="stylesheet" href="/css/style.css">
 		<!-- Scripts -->
 		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
@@ -28,7 +29,7 @@
 								<span class="icon-bar"></span>
 								<span class="icon-bar"></span>
 							</button>
-							<a class="navbar-brand visible-xs" href="/">Transcoder</a>
+							<a class="navbar-brand visible-xs" href="/"><img src="/img/Filecoder Brand.png" alt=""></a>
 						</div>
 
 						<div class="collapse navbar-collapse" id="header-menu">
@@ -37,12 +38,16 @@
 								<li><a href="/tasks" ng-show="isLoggedIn"><span class="glyphicon glyphicon-tasks" aria-hidden="true"></span>Tasks</a></li>
 							</ul>
 
-							<a href="/" class="brand hidden-xs">Transcoder</a>
+							<a href="/" class="brand hidden-xs"><img src="/img/Filecoder Brand.png" alt=""></a>
 
 							<ul class="nav navbar-nav navbar-right">
 								<li><a href="/login" ng-hide="isLoggedIn">Login</a></li>
 								<li><a href="/register" ng-hide="isLoggedIn">Register</a></li>
-								<li><a href="/profil" ng-show="isLoggedIn"><span class="glyphicon glyphicon-user" aria-hidden="true"></span>{{loggedUser.username ? loggedUser.username : loggedUser.email }}</a></li>
+								<li>
+									<a href="/profil" ng-show="isLoggedIn">
+										<span class="glyphicon glyphicon-user" aria-hidden="true"></span>{{ loggedUser.username ? loggedUser.username : loggedUser.email }}
+									</a>
+								</li>
 								<form class="navbar-form navbar-left">
 									<div class="form-group">
 										<button class="btn btn-default" ng-show="isLoggedIn" ng-click="logOut()">Logout</button>
@@ -55,16 +60,16 @@
 			</nav>
 
 			<div class="container panel-message">
-				<div class="info row text-success" ng-show="infos != null">
-					<ul ng-repeat="info in infos">
-						<li>{{ info }}</li>
-					</ul>
-				</div>
-				<div class="error row text-danger" ng-show="errors != null">
-					<ul ng-repeat="error in errors">
-						<li>{{ error }}</li>
-					</ul>
-				</div>
+				<ul class="info row text-success" ng-hide="infos | isEmpty">
+					<li ng-repeat="info in infos">
+						{{ info }}
+					</li>
+				</ul>
+				<ul class="error row text-danger" ng-hide="errors | isEmpty">
+					<li ng-repeat="error in errors">
+						{{ error }}
+					</li>
+				</ul>
 			</div>
 				
 		</header>
@@ -73,14 +78,16 @@
 
 		<div class="view" ng-view></div>			
 
-		<footer>
+		<!-- <footer>
 			<hr>
-		</footer>
+		</footer> -->
 
 		<!-- Scripts -->
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
 		<script src="/js/bootstrap.min.js"></script>
 		<script src="/js/ng-file-upload-shim.min.js"></script>
 		<script src="/js/ng-file-upload.min.js"></script>
+		<script>
+		</script>
 	</body>
 </html>

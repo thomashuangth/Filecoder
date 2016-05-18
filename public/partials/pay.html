@@ -1,16 +1,27 @@
-<div class="col-md-12">
-	<h2>Payment</h2>
-	<hr>
-	<h3 class="text-center">One more step...</h3>
-	<div class="row">
-		<div class="col-sm-12">
-			<p>Your file is {{ task.formatDuration }} long so you need to pay {{ task.price }}$ (US dollars)</p>
-			<button class="btn btn-info" ng-click="pay(task.price)">Paypal</button>
-			<p>For more information, check our pricing page</p>
+<div class="pay" ng-show="isLoggedIn">
+	<section>
+		<div class="container">
+			<div class="row">
+				<div class="col-xs-12 text-center">
+					<h2>Payment</h2>
+					<hr>
+					<h3 class="text-center">One more step...</h3>
+					<div class="row">
+						<div class="col-sm-12 text-center">
+							<div class="row">
+								<p>Your file is {{ task.formatDuration }} long so you need to pay <b>{{ task.price }}$ (US dollars)</b></p>
+							</div>
+							<div class="row pay-choice">
+								<button class="btn btn-info paypal" ng-click="pay(task.price)"><span class="fa fa-paypal"></span> Paypal</button>
+							</div>
+							<div class="row">
+								<p>For more information, check our pricing page</p>
+							</div>
+							
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
-	</div>
-</div>
-
-<div class="row" ng-hide="isLoggedIn">
-	<h2>Please Login or Register</h2>
+	</section>
 </div>

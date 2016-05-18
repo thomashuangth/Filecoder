@@ -1,15 +1,15 @@
-<div class="row" ng-show="isLoggedIn">
-	<h2>Your profil</h2>
+<div class="profil" ng-show="isLoggedIn">
+	<section>
+		<div class="container">
+			<div class="row">
+				<div class="col-xs-12">
+					<h2>{{ loggedUser.username ? loggedUser.username : loggedUser.email }}</h2>
+					<button ng-show="isLoggedIn" class="btn btn-default" ng-click="logOut()">Logout</button>
+				</div>
+			</div>
+		</div>
+	</section>
 	
 
-	<div class="panel panel-default">
-		<div class="panel-heading">
-			<h3 class="panel-title">{{ loggedUser.username }}</h3>
-			</div>
-			<div class="panel-body">
-			Email : {{ loggedUser.email }}
-		</div>
-	</div>
-
-	<button ng-show="isLoggedIn" class="btn btn-danger" ng-click="logOut()">Logout</button>
+	
 </div>

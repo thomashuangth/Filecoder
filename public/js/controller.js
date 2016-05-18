@@ -1,13 +1,52 @@
-var mainController = angular.module('mainController', ['ngCookies', 'ngFileUpload']);
+var mainController = angular.module('mainController', ['ngCookies', 'ngFileUpload'])
+	.filter('isEmpty', function () {
+        var bar;
+        return function (obj) {
+            for (bar in obj) {
+                if (obj.hasOwnProperty(bar)) {
+                    return false;
+                }
+            }
+            return true;
+        };
+    });
 
 mainController.controller('htmlController', ['$scope', '$rootScope', '$http', '$cookies', '$location', function($scope, $rootScope, $http, $cookies, $location){
+	$rootScope.clearMessage = function() {
+		$rootScope.infos = [];
+		$rootScope.errors = [];
+	};
+
+	$scope.logOut = function() {
+		$http.get('/logout')
+			.success(function(data) {
+				$rootScope.loggedUser = {};
+				$rootScope.isLoggedIn = false;
+				$cookies.remove('FCCurrentUser');
+				console.log("Cookie deleted");
+				$location.path('/');
+			})
+			.error(function(data) {
+				console.log('Errors: ' + data);
+				$rootScope.loggedUser = {};
+				$rootScope.isLoggedIn = false;
+			});
+	};
+
+	$scope.popupWindow = function(url, title, w, h) {
+		var left = (screen.width/2)-(w/2);
+		var top = (screen.height/2)-(h/2);
+		window.open(url, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width='+w+', height='+h+', top='+top+', left='+left);
+	};
 
 	if (typeof $rootScope.isLoggedIn !== "undefined") {
 		checkCurrentUser();
 	} else {
-		if ($cookies.getObject('TCCurrentUser')) {
-			$rootScope.loggedUser = $cookies.getObject('TCCurrentUser');
+		if ($cookies.getObject('FCCurrentUser')) {
+			$rootScope.loggedUser = $cookies.getObject('FCCurrentUser');
 			$rootScope.isLoggedIn = true;
+		} else {
+			$scope.logOut();
 		};
 	};
 
@@ -31,30 +70,7 @@ mainController.controller('htmlController', ['$scope', '$rootScope', '$http', '$
 			});
 	};
 
-	$rootScope.clearMessage = function() {
-		$rootScope.infos = [];
-		$rootScope.errors = [];
-	};
-
-	$scope.logOut = function() {
-		$http.get('/logout')
-			.success(function(data) {
-				$rootScope.loggedUser = {};
-				$rootScope.isLoggedIn = false;
-				$cookies.remove('TCCurrentUser');
-				console.log("Cookie deleted");
-				$location.path('/');
-			})
-			.error(function(data) {
-				console.log('Errors: ' + data);
-			});
-	};
-
-	$scope.popupWindow = function(url, title, w, h) {
-		var left = (screen.width/2)-(w/2);
-		var top = (screen.height/2)-(h/2);
-		window.open(url, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width='+w+', height='+h+', top='+top+', left='+left);
-	} 
+	
 	
 }]);
 
@@ -134,7 +150,7 @@ mainController.controller('authenticationController', ['$scope', '$rootScope', '
 				var today = new Date();
 				var expired = new Date(today);
 				expired.setDate(today.getDate() + 1); //Set expired date to tomorrow
-				$cookies.putObject('TCCurrentUser', data, {expire : expired });
+				$cookies.putObject('FCCurrentUser', data, {expire : expired });
 				console.log("Cookie created : " + $cookies);
 
 				$location.path('/');
@@ -159,7 +175,7 @@ mainController.controller('authenticationController', ['$scope', '$rootScope', '
 				var today = new Date();
 				var expired = new Date(today);
 				expired.setDate(today.getDate() + 1); //Set expired date to tomorrow
-				$cookies.putObject('TCCurrentUser', data, {expire : expired });
+				$cookies.putObject('FCCurrentUser', data, {expire : expired });
 				console.log("Cookie created : " + $cookies);
 
 				$location.path('/');
@@ -171,8 +187,18 @@ mainController.controller('authenticationController', ['$scope', '$rootScope', '
 
 }]);
 
-mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'Upload', '$location', function($scope, $rootScope, $http, Upload, $location) {
+mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'Upload', '$location', '$cookies', function($scope, $rootScope, $http, Upload, $location, $cookies) {
 	
+	if ($rootScope.currentTask) {
+		var today = new Date();
+		var expired = new Date(today);
+		expired.setDate(today.getDate() + 1); //Set expired date to tomorrow
+		$cookies.putObject('FCCurrentTask', $rootScope.currentTask, {expire : expired });
+		console.log("Cookie created : " + $cookies);
+	} else if ($cookies.getObject('FCCurrentTask')) {
+		$rootScope.currentTask = $cookies.getObject('FCCurrentTask');
+	}
+
 	if ($rootScope.isLoggedIn) {
 		$http.get('/task/get')
 			.success(function(data) {
@@ -187,8 +213,27 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 	};
 
 	$('.start').click(function() {
-		$('.uploadForm').slideDown();
-		$(this).fadeOut();
+		$(this).parent().slideUp(200, function() {
+			$('.uploadForm').slideDown(200);
+		});
+	});
+
+	$('.btn-cancel').click(function() {
+		$(this).parent().slideUp(200, function() {
+			$('.introduction').slideDown(200);
+		});
+	});
+
+	$(".tasks-list").on("click", ".task", function() {
+		console.log($(this));
+		$(this).next().slideToggle(200, function() {
+			if ($(this).is(':visible'))
+				$(this).css('display','inline-block');
+		})
+	});
+
+	$(".info-tasks").on("click", function() {
+	    $('html,body').animate({scrollTop: $('.latest-tasks').offset().top - 50}, 200);
 	});
 
 	$scope.checkFile = function() {
@@ -199,8 +244,9 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 		$('.btn-upload').attr('disabled', 'disabled');
 		$('.output-select').attr('disabled', 'disabled');
 		$('.filename').empty();
-		$('.file-preview').animate({ 'overflow': "hidden", 'height': 0, 'margin-bottom': 0 }, { duration: 300 }).empty().hide();
-
+		$('.file-preview').slideUp();
+/*		$('.file-preview').animate({ 'overflow': "hidden", 'height': 0, 'margin-bottom': 0 }, { duration: 300 }).empty().hide();
+*/
 		//Show every output
 		$('.output-select option').show();
 
@@ -234,8 +280,9 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 
 			//Show preview
 			$('.filename').html($scope.file.name);
-			$('.file-preview').show().delay(1000).animate({ 'overflow': "visible", 'height': previewHeight, 'margin-bottom': 15 }, { duration: 300 });
-		};
+			$('.file-preview').slideDown(200);
+/*			$('.file-preview').show().delay(1000).animate({ 'overflow': "visible", 'height': previewHeight, 'margin-bottom': 15 }, { duration: 300 });
+*/		};
 
 	};
 
@@ -245,7 +292,7 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 
 		//Second field check
 		if (typeof $scope.task == "undefined" || typeof $scope.task.output == "undefined") {
-			$rootScope.errors.push("Please fill the required fields");
+			$rootScope.errors.push("Please provide a file and an output");
 			return false;
 		};
 		
@@ -253,6 +300,7 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 		if ($scope.file) {
 			$scope.file.input = $scope.task.input = ($scope.file.name.split('.')[$scope.file.name.split('.').length -1]).toUpperCase();
 			$scope.file.output = $scope.task.output;
+			//Check same input output
 			if ($scope.file.input == $scope.file.output) {
 				$rootScope.errors.push("The file is already in " + $scope.file.output);
 				return false;
@@ -262,6 +310,8 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 			Upload.mediaDuration($scope.file).then(function(durationInSeconds) {
 				$scope.task.duration = durationInSeconds;
 				if($scope.upload_form.file.$valid) {
+					$('.uploadForm').slideUp(200);
+					$('.upload-info').slideDown(200);
 					$scope.upload($scope.file);
 				};
 			});
@@ -288,7 +338,7 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 			$rootScope.errors.push("Error status: " + resp.status);
 		}, function(evt) {
 			var progressPercentage = parseInt(100.0 * evt.loaded / evt.total);
-			$scope.progress = "progress: " + progressPercentage + "% ";
+			$scope.progress = progressPercentage + "%";
 		});
 	};
 
@@ -325,8 +375,21 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 
 }]);
 
-mainController.controller('payController', ['$scope', '$rootScope', '$http', function($scope, $rootScope, $http) {
+mainController.controller('payController', ['$scope', '$rootScope', '$http', '$location', '$cookies', function($scope, $rootScope, $http, $location, $cookies) {
 	
+	if ($cookies.getObject('FCCurrentTask')) {
+		$rootScope.currentTask = $cookies.getObject('FCCurrentTask');
+	} else {
+		var today = new Date();
+		var expired = new Date(today);
+		expired.setDate(today.getDate() + 1); //Set expired date to tomorrow
+		$cookies.putObject('FCCurrentTask', $rootScope.currentTask, {expire : expired });
+		console.log("Cookie created : " + $cookies);
+	}
+
+	
+
+	console.log($rootScope.currentTask);
 	$http.get('/task/get/' + $rootScope.currentTask)
 		.success(function(data) {
 			$scope.task = data;

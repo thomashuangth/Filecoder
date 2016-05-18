@@ -20,7 +20,7 @@ var config = require("../config");
 /* LOGIN */
 router.get("/login", isNotAuthenticated, function(req, res) {
 	console.log("[Route] GET Login".cyan);
-	res.json(req.user);
+	res.sendFile(path.join(__dirname, "../../public", "index.html"));
 });
 
 router.post("/login", passport.authenticate("login"), function(req, res) {
@@ -31,7 +31,7 @@ router.post("/login", passport.authenticate("login"), function(req, res) {
 /* REGISTER */
 router.get("/register", isNotAuthenticated, function(req, res) {
 	console.log("[Route] GET Register".cyan);
-	res.json(req.user);
+	res.sendFile(path.join(__dirname, "../../public", "index.html"));
 });
 
 router.post("/register", passport.authenticate("register"), function(req, res) {
@@ -40,7 +40,7 @@ router.post("/register", passport.authenticate("register"), function(req, res) {
 });
 
 /* LOGOUT */
-router.get("/logout", function(req, res) {
+router.get("/logout", isAuthenticated, function(req, res) {
 	console.log("[Route] POST Logout".cyan);
 	req.logout();
 	res.redirect("/");
@@ -224,7 +224,7 @@ router.post("/task/create", isAuthenticated, function(req, res) {
 });
 
 router.get("/task/update/:id", isAuthenticated, function(req, res) {
-	Task.update({_id: req.params.id}, {status: "Paid"}, function(err){
+	Task.update({_id: req.params.id}, {status: "Paid", paid: true}, function(err){
 		if (err) {
 			console.log(err);
 			console.log("Can't update the paid task".red);
@@ -368,7 +368,7 @@ router.get("/tasks", isAuthenticated, function(req, res) {
 });
 
 router.get("/pay", isAuthenticated, function(req, res) {
-	res.redirect("/");
+	res.sendFile(path.join(__dirname, "../../public", "index.html"));
 	console.log("[Route] GET Pay".cyan);
 })
 
@@ -398,12 +398,11 @@ function isAuthenticated(req, res, next) {
 
 function isNotAuthenticated(req, res, next) {
 	console.log("Checking if user is not authenticated...");
-	if (!req.isAuthenticated) {
+	if (!req.isAuthenticated()) {
 		console.log("Authorized route ! !".green);
 		return next();
 	};
 	console.log("Forbidden route".red);
-	res.redirect("/");
 };
 
 function checkDirectorySync(directory) {

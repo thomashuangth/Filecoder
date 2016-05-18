@@ -1,22 +1,27 @@
-<div class="home" ng-show="isLoggedIn" ng-controller="taskController">
+<div class="home" ng-controller="taskController">
 	<section class="hero">
 		<div class="container">
 			<div class="row">
 				<div class="col-xs-12 text-center box">
-					<h1 class="text-center">Convert your Audio or Video</h1>
-					<hr>
-					<p>Welcome to our audio/video converter platform.</p>
-					<p>Upload your file now and choose the output.</p>
+					<div class="introduction">
+						<h1 class="text-center">
+							<img src="./img/Filecoder Brand Medium.png" class="img-responsive" alt="Filecoder">
+						</h1>
+						<hr>
+						<p>Welcome to our audio/video converter platform.</p>
+						<p>Upload your file now and choose the output.</p>
 
-					<button class="btn btn-default start text-uppercase">Convert</button>
+						<button class="btn btn-default start text-uppercase">Convert</button>
+					</div>
+						
 
 					<form class="uploadForm" name="upload_form">
 						<div class="form-group">
-							<input type="file" class="inputFile" name="file" id="file" ngf-select="checkFile()" ng-model="file" ngf-pattern="'video/*,audio/*,.mkv'" ngf-accept="'video/*,audio/*,.mkv'" ngf-max-size="700MB" required>
+							<input type="file" class="inputFile" name="file" id="file" ngf-select="checkFile()" ng-model="file" ngf-pattern="'video/*,audio/*,.mkv'" ngf-accept="'video/*,audio/*,.mkv'" ngf-max-size="700MB">
 							<label for="file" class="btn btn-default">Choose a file</label>
 						</div>	
 						<div class="form-group">
-							<p class="filename color"></p>
+							<p class="filename color montserrat"></p>
 						</div>					
 						<div class="form-group file-preview">
 							<video controls ngf-src="file"></video>
@@ -66,42 +71,55 @@
 								<option ng-hide="isVideo">WMA</option>		
 							</select>
 						</div>
-
-						<button type="submit" class="btn btn-default btn-upload" ng-click="uploadCreate()">Convert</button>
+						<button class="btn btn-cancel">Cancel</button>
+						<button type="submit" class="btn btn-default btn-upload" ng-click="uploadCreate()">Upload</button>
 					</form>
-					<p>{{ progress }}</p>
+					<div class="upload-info">
+						<div class="progress">
+							<div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" ng-style="{width: progress}">
+								{{ progress }}
+							</div>
+						</div>
+						<button class="btn btn-cancel">Upload again</button>
+						<a href="/tasks" class="btn btn-default">My Tasks</a>
+					</div>	
+				</div>
+			</div>
+		</div>
+		<p class="info-tasks brandon-grotesque text-uppercase" ng-hide="tasks | isEmpty" ng-show="isLoggedIn" >
+			<span class="glyphicon glyphicon-chevron-down"></span>
+			&nbsp Check your lastest tasks &nbsp
+			<span class="glyphicon glyphicon-chevron-down"></span>
+		</p>
+	</section>
+
+	<section ng-show="isLoggedIn">
+		<div class="container">
+			<div class="row">
+				<div class="col-xs-12">
+					<h2 class="latest-tasks">Latest Tasks</h2>
+					<ul class="list-group tasks-list">
+						<li class="list-group-item task" ng-repeat-start="task in tasks | orderBy:'-id':true">
+							<span class="badge pull-left">{{ task.status }}</span>
+							&nbsp {{ task.filename }} [{{ task.input }} to {{ task.output }}]
+							<span class="pull-right">
+								{{ task.date | date: 'yyyy-MM-dd HH:mm:ss' }} &nbsp
+								<span class="badge badge-2 pull-right">{{ task.type }}</span>
+							</span>
+							
+						</li>
+						<li class="list-group-item task-control text-center" ng-repeat-end>
+							<button class="btn btn-control" ng-click="convert(task._id, task.status)"><span class="glyphicon glyphicon-flash"></span>Convert</button>
+							<button class="btn btn-control" ng-click="deleteTask(task._id)"><span class="glyphicon glyphicon-remove"></span>Delete</button>
+						</li>
+					</ul>
+					<div class="row text-center">
+						<a href="/tasks" class="btn btn-default">All Tasks</a>
+					</div>
+				
 				</div>
 			</div>
 		</div>
 	</section>
 
-<!-- 	<div class="container">
-	<div class="row">
-		
-	</div>
-</div>
-<h3 class="text-center">Your lastest tasks</h3>
-<div class="row">
-	<div class="col-sm-4" ng-repeat="task in tasks | orderBy:'-id':true | limitTo:3">
-		<div class="panel panel-default">
-			<div class="panel-heading">
-				<h3 class="panel-title">{{ task.filename }} [{{ task.input }} => {{ task.output }}] ( {{ task.date | date: 'yyyy-MM-dd HH:mm:ss' }} )</h3>
-				</div>
-				<div class="panel-body">
-				<b>Input </b>: {{ task.input }}<br>
-				<b>Output </b>: {{ task.output }}<br>
-				<b>Filename </b>: {{ task.filename }}<br>
-				<b>Media Type</b> : {{ task.type }}
-				<button class="btn btn-danger" ng-click="deleteTask(task._id)">Delete</button>
-			</div>
-		</div>
-	</div>
-</div>
-<div class="row text-center">
-	<a href="/tasks" class="btn btn-default">All Tasks</a>
-</div> -->
-</div>
-
-<div class="row" ng-hide="isLoggedIn">
-	<h2>Please Login or Register</h2>
 </div>
