@@ -192,11 +192,16 @@ section.white {
 	background: #96281B;
     padding: 7px 15px;
     border-radius: 0;
+    margin-right: 7px;
 }
 
 .badge-2 {
 	background: #F3F3F3;
 	color: black;
+}
+
+.tasks-list {
+	list-style: none;
 }
 
 .list-group-item {
@@ -211,6 +216,7 @@ section.white {
 }
 
 .list-group-item.task {
+	vertical-align: middle;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -218,6 +224,15 @@ section.white {
 
 .list-group-item.task:hover {
 	background: #F3F3F3;
+}
+
+.list-group-item.task .content {
+	width: 55%;
+    vertical-align: middle;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: inline-block;
 }
 
 .list-group-item.task-control {
@@ -379,10 +394,7 @@ section.hero > div > div > div {
 
 .uploadForm .file-preview {
 	display: none;
-	max-height: 250px;/* 
-	height: 0;
-	overflow: hidden;
-	margin: 0; */
+	max-height: 250px;
 }
 
 .uploadForm video, .uploadForm audio {
@@ -446,7 +458,7 @@ section.hero > div > div > div {
     animation-name: fadeOut;
 }
 
-.ng-enter           { animation: fadeIn 0.2s both ease-in; z-index: 8888; }
+.ng-enter           { animation: fadeIn 0.1s both ease-in; z-index: 8888; }
 /* .ng-leave           { animation: fadeOut 0.2s both ease-in; z-index: 9999; } */
 
 
@@ -456,6 +468,10 @@ section.hero > div > div > div {
 	.start {
 	    font-size: 16px;
     	padding: 5px 50px;
+	}
+
+	.list-group-item.task .content {
+		width: 40%;
 	}
 }
 
@@ -491,6 +507,11 @@ section.hero > div > div > div {
 
 	.task span.pull-right {
 		display: none;
+	}
+
+	.list-group-item.task .content {
+		width: 100%;
+		display: inline;
 	}
 
 }

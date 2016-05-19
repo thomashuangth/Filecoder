@@ -242,6 +242,7 @@ router.post("/task/create", isAuthenticated, function(req, res) {
 		type: req.body.type, 
 		filename: req.body.filename,
 		duration: req.body.duration,
+		size: req.body.size
 	});
 
 	task.save(function(err){
@@ -279,8 +280,14 @@ router.delete("/task/delete/:id", isAuthenticated, function(req, res) {
 			
 		if (task) {
 			console.log(task.name + " found".green);
+
+			var folder = "uploads/";
+
+			if (task.status == "converted") {
+				folder = "converted/";
+			};
 			
-			fs.unlinkSync(config.iscsiServer + "uploads/" + req.user.email + "/" + task.filename);
+			fs.unlinkSync(config.iscsiServer + folder + req.user.email + "/" + task.filename);
 			Task.remove({_id: req.params.id, owner: req.user.email}, function(err){
 				if (err) {
 					console.log(err);
@@ -297,7 +304,7 @@ router.delete("/task/delete/:id", isAuthenticated, function(req, res) {
 });
 
 function getTasksFromUser(email, res) {
-	Task.find({owner: email}, function(err, tasks) {
+	Task.find({owner: email}, null, {sort: {date: -1}}, function(err, tasks) {
 		if (err)
 			res.send(err);
 		res.json(tasks);

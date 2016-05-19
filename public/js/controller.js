@@ -9,7 +9,15 @@ var mainController = angular.module('mainController', ['ngCookies', 'ngFileUploa
             }
             return true;
         };
-    });
+    }).filter('bytes', function() {
+	return function(bytes, precision) {
+		if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return '-';
+		if (typeof precision === 'undefined') precision = 1;
+		var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
+			number = Math.floor(Math.log(bytes) / Math.log(1024));
+		return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  ' ' + units[number];
+	}
+});
 
 mainController.controller('htmlController', ['$scope', '$rootScope', '$http', '$cookies', '$location', function($scope, $rootScope, $http, $cookies, $location){
 	$rootScope.clearMessage = function() {
@@ -101,7 +109,7 @@ mainController.controller('authenticationController', ['$scope', '$rootScope', '
 			$rootScope.errors.push("Passwords does not match.");
 			return false;
 		};
-		
+
 		$http.post('/register', $scope.user)
 			.success(function(data) {
 				console.log(data);
@@ -195,7 +203,7 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 	if ($rootScope.isLoggedIn) {
 		$http.get('/task/get')
 			.success(function(data) {
-				$scope.tasks = data;
+				$scope.tasks = limit10G(data);
 			})
 			.error(function(data) {
 				console.log('Errors: ' + data);
@@ -218,15 +226,26 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 	});
 
 	$(".tasks-list").on("click", ".task", function() {
-		$(this).next().slideToggle(200, function() {
-			if ($(this).is(':visible'))
-				$(this).css('display','inline-block');
-		})
+		$(this).next().slideToggle(200);
 	});
 
 	$(".info-tasks").on("click", function() {
 	    $('html,body').animate({scrollTop: $('.latest-tasks').offset().top - 50}, 200);
 	});
+
+	function limit10G(tasks) {
+	    var total = 0;
+	    var limitTasks = [];
+	    for(var i = 0; i < tasks.length; i++){
+	    	total += tasks[i].size;
+	    	if (total >= 10000000000) {
+	    		$scope.deleteTask(tasks[i]._id);
+	    	} else {
+	    		limitTasks.push(tasks[i]);
+	    	};
+	    }
+	    return limitTasks;
+	}
 
 	$scope.checkFile = function() {
 		$rootScope.clearMessage();
@@ -279,8 +298,8 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 	};
 
 	$scope.uploadCreate = function() {
-		$rootScope.infos = [];
-		$rootScope.errors = [];
+		
+		$rootScope.clearMessage();
 
 		//Second field check
 		if (typeof $scope.task == "undefined" || typeof $scope.task.output == "undefined") {
@@ -299,6 +318,7 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 			};
 			$scope.file.filename = $scope.task.filename = "ENC_" + $scope.file.output + "_" + $scope.file.name;
 			$scope.task.type = $scope.file.type.split('/')[0];
+			$scope.task.size = $('.inputFile').get(0).files[0].size;
 			Upload.mediaDuration($scope.file).then(function(durationInSeconds) {
 				$scope.task.duration = durationInSeconds;
 				if($scope.upload_form.file.$valid) {
@@ -318,7 +338,7 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 			data: {file: file, input: $scope.file.input, output: $scope.file.output, filename: $scope.file.filename }
 		}).then(function (resp) {
 			if (resp.data.error_code === 0) {
-				$rootScope.infos.push("Success " + resp.config.data.file.name + " uploaded.");
+				$rootScope.infos.push(resp.config.data.file.name + " uploaded");
 				$scope.task.filename = resp.data.filename;
 				$scope.createTask($scope.task);
 				$scope.file = {};
@@ -335,7 +355,6 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 	};
 
 	$scope.createTask = function(task) {
-		$rootScope.clearMessage();
 		$http.post('/task/create', task)
 			.success(function(data) {
 				$rootScope.infos.push("Task created");
@@ -371,15 +390,15 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 
 mainController.controller('payController', ['$scope', '$rootScope', '$http', '$location', '$cookies', function($scope, $rootScope, $http, $location, $cookies) {
 	
-	if ($cookies.getObject('FCCurrentTask')) {
-		$rootScope.currentTask = $cookies.getObject('FCCurrentTask');
-	} else {
+	if ($rootScope.currentTask) {
 		var today = new Date();
 		var expired = new Date(today);
 		expired.setDate(today.getDate() + 1); //Set expired date to tomorrow
 		$cookies.putObject('FCCurrentTask', $rootScope.currentTask, {expire : expired });
 		console.log("Cookie created : " + $cookies);
-	}
+	} else if ($cookies.getObject('FCCurrentTask')) {
+		$rootScope.currentTask = $cookies.getObject('FCCurrentTask');
+	};
 
 	$http.get('/task/get/' + $rootScope.currentTask)
 		.success(function(data) {

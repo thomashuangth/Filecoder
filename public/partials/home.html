@@ -17,7 +17,7 @@
 
 					<form class="uploadForm" name="upload_form">
 						<div class="form-group">
-							<input type="file" class="inputFile" name="file" id="file" ngf-select="checkFile()" ng-model="file" ngf-pattern="'video/*,audio/*,.mkv'" ngf-accept="'video/*,audio/*,.mkv'" ngf-max-size="700MB">
+							<input type="file" class="inputFile" name="file" id="file" ngf-select="checkFile()" ng-model="file" ngf-pattern="'video/*,audio/*,.mkv'" ngf-accept="'video/*,audio/*,.mkv'" ngf-max-size="10000MB">
 							<label for="file" class="btn btn-default">Choose a file</label>
 						</div>	
 						<div class="form-group">
@@ -76,7 +76,7 @@
 					</form>
 					<div class="upload-info">
 						<div class="progress">
-							<div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" ng-style="{width: progress}">
+							<div class="progress-bar montserrat" role="progressbar" aria-valuemin="0" aria-valuemax="100" ng-style="{width: progress}">
 								{{ progress }}
 							</div>
 						</div>

@@ -27,7 +27,7 @@
 							</div>
 							<div class="form-group col-md-2">
 								<select name="order-tasks" class="form-control" ng-model="searchFilter">
-									<option value="date">Order by</option>
+									<option value="">Order by</option>
 									<option value="name">Order by Name</option>
 									<option value="date" ng-selected="true">Order by Date</option>
 									<option value="status">Order by Status</option>
@@ -37,22 +37,22 @@
 							</div>
 							<div class="form-group col-md-6">
 								<label class="checkbox-inline">
-									<input type="checkbox" value="false" ng-model="searchOrder" ng-true-value="false" ng-false-value="true"> Ascending
+									<input type="checkbox" ng-true-value="false" ng-false-value="null" ng-model="searchOrder"> Reverse
 								</label>
 							</div>
 						</div>
 					</form>
-					<h2>{{ (tasks| orderBy:searchFilter:searchOrder | filter:searchTask).length }} Tasks found</h2>
+					<h2>{{ (tasks| orderBy:searchFilter:(searchOrder == null ? searchOrder : true) | filter:{ filename: searchTask } | filter:{ status: searchStatus } | filter:{ type: searchType }).length }} Tasks found</h2>
 
 					<ul class="list-group tasks-list">
-						<li class="list-group-item task" ng-repeat-start="task in tasks | orderBy:searchFilter:(searchOrder == false ? searchOrder : true) | filter:{ filename: searchTask } | filter:{ status: searchStatus } | filter:{ type: searchType }">
+						<li class="list-group-item task" ng-repeat-start="task in tasks | orderBy:searchFilter:(searchOrder == null ? searchOrder : true) | filter:{ filename: searchTask } | filter:{ status: searchStatus } | filter:{ type: searchType }">
 							<span class="badge pull-left">{{ task.status }}</span>
-							&nbsp {{ task.filename }} [{{ task.input }} to {{ task.output }}]
+							<span class="content">{{ task.filename }} [{{ task.input }} to {{ task.output }}]</span>
 							<span class="pull-right">
-								{{ task.date | date: 'yyyy-MM-dd HH:mm:ss' }} &nbsp
-								<span class="badge badge-2 pull-right">{{ task.type }}</span>
+								<span class="badge badge-2 pull-left">{{ task.size | bytes }}</span> 
+								<span class="badge badge-2 pull-left">{{ task.type | uppercase }}</span>
+								{{ task.date | date: 'yyyy-MM-dd HH:mm:ss' }}
 							</span>
-							
 						</li>
 						<li class="list-group-item task-control text-center" ng-repeat-end>
 							<button class="btn btn-control" ng-click="convert(task._id, task.status)"><span class="glyphicon glyphicon-flash"></span>Convert</button>

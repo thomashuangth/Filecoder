@@ -11,6 +11,7 @@ var TaskSchema = new mongoose.Schema({
     filename    : String,
     type		: String,
     duration	: Number,
+    size		: Number,
     date 		: { type: Date, default: Date.now },
     paid		: { type: Boolean, default: false }
 
