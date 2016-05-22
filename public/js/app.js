@@ -10,6 +10,10 @@ myApp.config(['$routeProvider', '$locationProvider', function($routeProvider, $l
 			templateUrl: '../partials/home.html',
 			controller: 'homeController'
 		}).
+		when('/pricing', {
+			templateUrl: '../partials/pricing.html',
+			controller: 'homeController'
+		}).
 		when('/login', {
 			templateUrl: '../partials/login.html',
 			controller: 'authenticationController'

@@ -36,7 +36,7 @@
 						<div class="collapse navbar-collapse" id="header-menu">
 							<ul class="nav navbar-nav">
 								<li><a href="/home"><span class="glyphicon glyphicon-home"></span>Home</a></li>
-								<li><a href="/tasks" ng-show="isLoggedIn"><span class="glyphicon glyphicon-tasks"></span>Tasks</a></li>
+								<li><a href="/pricing"><span class="glyphicon glyphicon-tag"></span>Pricing</a></li>
 							</ul>
 
 							<a href="/home" class="brand hidden-xs"><img src="/img/Filecoder Brand.png" alt=""></a>
@@ -44,6 +44,7 @@
 							<ul class="nav navbar-nav navbar-right">
 								<li><a href="/login" ng-hide="isLoggedIn"><span class="glyphicon glyphicon-user"></span>Login</a></li>
 								<li><a href="/register" ng-hide="isLoggedIn"><span class="glyphicon glyphicon-pencil"></span>Register</a></li>
+								<li><a href="/tasks" ng-show="isLoggedIn"><span class="glyphicon glyphicon-tasks"></span>Tasks</a></li>
 								<li>
 									<a href="/profil" ng-show="isLoggedIn">
 										<span class="glyphicon glyphicon-user"></span>{{ loggedUser.username ? loggedUser.username : loggedUser.email }}

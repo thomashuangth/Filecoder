@@ -31,6 +31,7 @@ mainController.controller('htmlController', ['$scope', '$rootScope', '$http', '$
 				$rootScope.loggedUser = {};
 				$rootScope.isLoggedIn = false;
 				$cookies.remove('FCCurrentUser');
+				$cookies.remove('FCCurrentTask');
 				console.log("Cookie deleted");
 				$location.path('/');
 			})
@@ -83,7 +84,7 @@ mainController.controller('htmlController', ['$scope', '$rootScope', '$http', '$
 }]);
 
 mainController.controller('homeController', ['$scope', '$rootScope', '$http', '$cookies', function($scope, $rootScope, $http, $cookies) {
-
+	$('.output-select').prop("selectedIndex", 0);
 
 }]);
 
@@ -189,7 +190,7 @@ mainController.controller('authenticationController', ['$scope', '$rootScope', '
 }]);
 
 mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'Upload', '$location', '$cookies', function($scope, $rootScope, $http, Upload, $location, $cookies) {
-	
+		
 	if ($rootScope.currentTask) {
 		var today = new Date();
 		var expired = new Date(today);
@@ -198,7 +199,17 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 		console.log("Cookie created : " + $cookies);
 	} else if ($cookies.getObject('FCCurrentTask')) {
 		$rootScope.currentTask = $cookies.getObject('FCCurrentTask');
-	}
+	};
+
+	if ($rootScope.currentTask) {
+		$http.get('/task/get/' + $rootScope.currentTask)
+		.success(function(data) {
+			$scope.task = data;
+		})
+		.error(function(data) {
+			//$rootScope.errors.push("No task found");
+		})
+	};
 
 	if ($rootScope.isLoggedIn) {
 		$http.get('/task/get')
@@ -406,7 +417,7 @@ mainController.controller('payController', ['$scope', '$rootScope', '$http', '$l
 			$scope.task.price = getPrice(data);
 		})
 		.error(function(data) {
-			$rootScope.errors.push("No task found");
+			//$rootScope.errors.push("No task found");
 		})
 
 	$scope.pay = function(price) {

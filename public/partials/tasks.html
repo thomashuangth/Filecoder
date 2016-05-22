@@ -42,7 +42,8 @@
 							</div>
 						</div>
 					</form>
-					<h2>{{ (tasks| orderBy:searchFilter:(searchOrder == null ? searchOrder : true) | filter:{ filename: searchTask } | filter:{ status: searchStatus } | filter:{ type: searchType }).length }} Tasks found</h2>
+					
+					<h3>{{ (tasks| orderBy:searchFilter:(searchOrder == null ? searchOrder : true) | filter:{ filename: searchTask } | filter:{ status: searchStatus } | filter:{ type: searchType }).length }} Tasks found</h3>
 
 					<ul class="list-group tasks-list">
 						<li class="list-group-item task" ng-repeat-start="task in tasks | orderBy:searchFilter:(searchOrder == null ? searchOrder : true) | filter:{ filename: searchTask } | filter:{ status: searchStatus } | filter:{ type: searchType }">
@@ -55,10 +56,11 @@
 							</span>
 						</li>
 						<li class="list-group-item task-control text-center" ng-repeat-end>
-							<button class="btn btn-control" ng-click="convert(task._id, task.status)"><span class="glyphicon glyphicon-flash"></span>Convert</button>
+							<button class="btn btn-control" ng-click="convert(task._id, task.status)" ng-hide="task.status == 'Converted'"><span class="glyphicon glyphicon-flash"></span>Convert</button>
 							<button class="btn btn-control" ng-click="deleteTask(task._id)"><span class="glyphicon glyphicon-remove"></span>Delete</button>
+							<button class="btn btn-control" ng-click="download(task._id)" ng-show="task.status == 'Converted'"><span class="glyphicon glyphicon-save"></span>Download</button>
 						</li>
-					</ul>				
+					</ul>
 				</div>
 			</div>
 		</div>

@@ -2,14 +2,11 @@
 	<section>
 		<div class="container">
 			<div class="row">
-				<h2>Convert</h2>
-				<div class="row">
-					<div class="col-sm-12">
-						<p>Your file is now converting, please wait until the process is finished...</p>
-						<p>Meanwhile, you can convert more files</p>
-						{{ currentTask }}
-						
-					</div>
+				<div class="col-md-offset-1 col-md-10 box">
+					<h1>Converting</h1>
+					<p>Your file <span class="montserrat color">{{ task.name }}</span> is converting, please wait until the process is finished...</p>
+					<p>Meanwhile, you can convert more files</p>
+					
 				</div>
 			</div>
 		</div>
@@ -18,27 +15,29 @@
 	<section ng-show="isLoggedIn">
 		<div class="container">
 			<div class="row">
-				<div class="col-xs-12">
+				<div class="col-md-offset-1 col-md-10 box">
 					<h2 class="latest-tasks">Latest Tasks</h2>
+
 					<ul class="list-group tasks-list">
-						<li class="list-group-item task" ng-repeat-start="task in tasks | orderBy:'-id':true">
+						<li class="list-group-item task" ng-repeat-start="task in tasks | orderBy:searchFilter:(searchOrder == null ? searchOrder : true) | filter:{ filename: searchTask } | filter:{ status: searchStatus } | filter:{ type: searchType }">
 							<span class="badge pull-left">{{ task.status }}</span>
-							&nbsp {{ task.filename }} [{{ task.input }} to {{ task.output }}]
+							<span class="content">{{ task.filename }} [{{ task.input }} to {{ task.output }}]</span>
 							<span class="pull-right">
-								{{ task.date | date: 'yyyy-MM-dd HH:mm:ss' }} &nbsp
-								<span class="badge badge-2 pull-right">{{ task.type }}</span>
+								<span class="badge badge-2 pull-left">{{ task.size | bytes }}</span> 
+								<span class="badge badge-2 pull-left">{{ task.type | uppercase }}</span>
+								{{ task.date | date: 'yyyy-MM-dd HH:mm:ss' }}
 							</span>
-							
 						</li>
 						<li class="list-group-item task-control text-center" ng-repeat-end>
 							<button class="btn btn-control" ng-click="convert(task._id, task.status)"><span class="glyphicon glyphicon-flash"></span>Convert</button>
 							<button class="btn btn-control" ng-click="deleteTask(task._id)"><span class="glyphicon glyphicon-remove"></span>Delete</button>
 						</li>
 					</ul>
+					
 					<div class="row text-center">
 						<a href="/tasks" class="btn btn-default">All Tasks</a>
 					</div>
-				
+					
 				</div>
 			</div>
 		</div>

@@ -36,7 +36,7 @@
 						</div>
 						<div class="form-group">
 							<select class="form-control output-select" ng-model="task.output" disabled required>
-								<option value="" disabled selected>Upload a video/audio and choose the output</option>
+								<option value="" disabled ng-selected>Upload a video/audio and choose the output</option>
 								<option disabled="disabled">-- Video --</option>
 								<option ng-show="isVideo">AVI</option>
 								<option ng-show="isVideo">MP4</option>
@@ -88,7 +88,7 @@
 		</div>
 		<p class="info-tasks brandon-grotesque text-uppercase" ng-hide="tasks | isEmpty" ng-show="isLoggedIn" >
 			<span class="glyphicon glyphicon-chevron-down"></span>
-			&nbsp Check your lastest tasks &nbsp
+			&nbsp Check your latest tasks &nbsp
 			<span class="glyphicon glyphicon-chevron-down"></span>
 		</p>
 	</section>
@@ -98,25 +98,26 @@
 			<div class="row">
 				<div class="col-xs-12">
 					<h2 class="latest-tasks">Latest Tasks</h2>
+
 					<ul class="list-group tasks-list">
-						<li class="list-group-item task" ng-repeat-start="task in tasks | orderBy:'-id':true">
+						<li class="list-group-item task" ng-repeat-start="task in tasks | orderBy:searchFilter:(searchOrder == null ? searchOrder : true) | filter:{ filename: searchTask } | filter:{ status: searchStatus } | filter:{ type: searchType }">
 							<span class="badge pull-left">{{ task.status }}</span>
-							&nbsp {{ task.filename }} [{{ task.input }} to {{ task.output }}]
+							<span class="content">{{ task.filename }} [{{ task.input }} to {{ task.output }}]</span>
 							<span class="pull-right">
-								{{ task.date | date: 'yyyy-MM-dd HH:mm:ss' }} &nbsp
-								<span class="badge badge-2 pull-right">{{ task.type }}</span>
+								<span class="badge badge-2 pull-left">{{ task.size | bytes }}</span> 
+								<span class="badge badge-2 pull-left">{{ task.type | uppercase }}</span>
+								{{ task.date | date: 'yyyy-MM-dd HH:mm:ss' }}
 							</span>
-							
 						</li>
 						<li class="list-group-item task-control text-center" ng-repeat-end>
 							<button class="btn btn-control" ng-click="convert(task._id, task.status)"><span class="glyphicon glyphicon-flash"></span>Convert</button>
 							<button class="btn btn-control" ng-click="deleteTask(task._id)"><span class="glyphicon glyphicon-remove"></span>Delete</button>
 						</li>
 					</ul>
+
 					<div class="row text-center">
 						<a href="/tasks" class="btn btn-default">All Tasks</a>
 					</div>
-				
 				</div>
 			</div>
 		</div>

@@ -1,0 +1,15 @@
+<ul class="list-group tasks-list">
+	<li class="list-group-item task" ng-repeat-start="task in tasks | orderBy:searchFilter:(searchOrder == null ? searchOrder : true) | filter:{ filename: searchTask } | filter:{ status: searchStatus } | filter:{ type: searchType }">
+		<span class="badge pull-left">{{ task.status }}</span>
+		<span class="content">{{ task.filename }} [{{ task.input }} to {{ task.output }}]</span>
+		<span class="pull-right">
+			<span class="badge badge-2 pull-left">{{ task.size | bytes }}</span> 
+			<span class="badge badge-2 pull-left">{{ task.type | uppercase }}</span>
+			{{ task.date | date: 'yyyy-MM-dd HH:mm:ss' }}
+		</span>
+	</li>
+	<li class="list-group-item task-control text-center" ng-repeat-end>
+		<button class="btn btn-control" ng-click="convert(task._id, task.status)"><span class="glyphicon glyphicon-flash"></span>Convert</button>
+		<button class="btn btn-control" ng-click="deleteTask(task._id)"><span class="glyphicon glyphicon-remove"></span>Delete</button>
+	</li>
+</ul>
