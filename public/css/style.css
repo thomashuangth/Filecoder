@@ -239,6 +239,11 @@ section.white {
     display: inline-block;
 }
 
+.list-group-item.task .unfold {
+	margin-left: 15px;
+	color: #ABABAB;
+}
+
 .list-group-item.task-control {
 	display: none;
 	height: 80px;
@@ -469,6 +474,14 @@ section.hero > div > div > div {
 /* RESPONSIVE */
 
 @media (max-width: 991px) {
+	.navbar-collapse ul li span:last-child {
+		display: none;
+	}
+
+	.navbar-collapse ul li span.glyphicon {
+		margin: 0;
+	}
+
 	.start {
 	    font-size: 16px;
     	padding: 5px 50px;
@@ -480,6 +493,14 @@ section.hero > div > div > div {
 }
 
 @media (max-width: 767px) {
+
+	.navbar-collapse ul li span:last-child {
+		display: inline-block;
+	}
+
+	.navbar-collapse ul li span.glyphicon {
+		margin-right: 8px;
+	}
 
 	.panel-message .box {
 		margin-top: 0;
@@ -496,6 +517,7 @@ section.hero > div > div > div {
 	.navbar-form {
 	    text-align: center;
 	    padding-right: 15px;
+	    margin-right: 0;
 	}
 
 	section.hero {
@@ -509,14 +531,14 @@ section.hero > div > div > div {
 		bottom: 0;
 	}
 
-	.task span.pull-right {
+	.task span.task-info {
 		display: none;
 	}
 
 	.list-group-item.task .content {
 		width: 100%;
 		display: inline;
-	}
+	}	
 
 }
 

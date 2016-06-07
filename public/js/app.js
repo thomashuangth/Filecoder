@@ -35,7 +35,7 @@ myApp.config(['$routeProvider', '$locationProvider', function($routeProvider, $l
 		}).
 		when('/convert', {
 			templateUrl: '../partials/convert.html',
-			controller: 'taskController'
+			controller: 'convertController'
 		}).
 		when('/after-auth', {
 			templateUrl: '../partials/after-auth.html'

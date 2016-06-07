@@ -190,26 +190,6 @@ mainController.controller('authenticationController', ['$scope', '$rootScope', '
 }]);
 
 mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'Upload', '$location', '$cookies', function($scope, $rootScope, $http, Upload, $location, $cookies) {
-		
-	if ($rootScope.currentTask) {
-		var today = new Date();
-		var expired = new Date(today);
-		expired.setDate(today.getDate() + 1); //Set expired date to tomorrow
-		$cookies.putObject('FCCurrentTask', $rootScope.currentTask, {expire : expired });
-		console.log("Cookie created : " + $cookies);
-	} else if ($cookies.getObject('FCCurrentTask')) {
-		$rootScope.currentTask = $cookies.getObject('FCCurrentTask');
-	};
-
-	if ($rootScope.currentTask) {
-		$http.get('/task/get/' + $rootScope.currentTask)
-		.success(function(data) {
-			$scope.task = data;
-		})
-		.error(function(data) {
-			//$rootScope.errors.push("No task found");
-		})
-	};
 
 	if ($rootScope.isLoggedIn) {
 		$http.get('/task/get')
@@ -390,11 +370,12 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 
 	$scope.convert = function(taskId, taskStatus) {
 		$rootScope.currentTask = taskId;
-		if (taskStatus == "Paid") {
+		/*if (taskStatus == "Paid") {
 			$location.path('/convert');
 		} else {
 			$location.path('/pay');
-		};
+		};*/
+		$location.path('/convert');
 	};
 
 }]);
@@ -458,5 +439,38 @@ mainController.controller('payController', ['$scope', '$rootScope', '$http', '$l
 		return hours;
 
 	};
+
+}]);
+
+mainController.controller('convertController', ['$scope', '$rootScope', '$http', '$location', '$cookies', function($scope, $rootScope, $http, $location, $cookies) {
+		
+	if ($rootScope.currentTask) {
+		var today = new Date();
+		var expired = new Date(today);
+		expired.setDate(today.getDate() + 1); //Set expired date to tomorrow
+		$cookies.putObject('FCCurrentTask', $rootScope.currentTask, {expire : expired });
+		console.log("Cookie created : " + $cookies);
+	} else if ($cookies.getObject('FCCurrentTask')) {
+		$rootScope.currentTask = $cookies.getObject('FCCurrentTask');
+	};
+
+	$http.get('/task/get/' + $rootScope.currentTask)
+		.success(function(data) {
+			$scope.task = data;
+
+			$http.post('/converting', $scope.task)
+				.success(function(data) {
+					$scope.status = "Converted";
+					console.log("Convert success");
+				})
+				.error(function(data) {
+					console.log("Convert error");
+				});
+		})
+		.error(function(data) {
+			//$rootScope.errors.push("No task found");
+		});
+
+
 
 }]);

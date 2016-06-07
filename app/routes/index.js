@@ -411,12 +411,51 @@ router.get("/tasks", isAuthenticated, function(req, res) {
 router.get("/pay", isAuthenticated, function(req, res) {
 	res.sendFile(path.join(__dirname, "../../public", "index.html"));
 	console.log("[Route] GET Pay".cyan);
-})
+});
 
 router.get("/convert", isAuthenticated, function(req, res) {
 	res.sendFile(path.join(__dirname, "../../public", "index.html"));
 	console.log("[Route] GET Convert".cyan);
-})
+});
+
+router.post("/converting", isAuthenticated, function(req, res) {
+	console.log("[Route] POST Convert".cyan);
+	console.log("Converting...");
+
+	var filename = req.body.filename;
+	var duration = req.body.duration; //In seconds
+	var type = req.body.type;
+
+	/* owner: 
+	name
+	output
+	input 
+	type
+	filenam
+	duration
+	size
+	paid
+	date
+	status
+	*/
+
+	var path = config.iscsiServer + "uploads/" + req.user.email + "/" + filename
+
+	console.log(req.body);
+	if (duration > 200) {
+		console.log("Duration + 200");
+		//SHELLJSSTUFF
+	} else {
+		console.log("Duration - 200");
+		//SHELLJSSTUFF
+	};
+
+	//Change Tasks Status
+
+	//Send mail
+	
+	//res.json(tasks);
+});
 
 /* WHO AM I */
 router.get("/whoami", isAuthenticated, function(req, res) {
