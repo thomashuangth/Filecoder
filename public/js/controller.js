@@ -32,11 +32,9 @@ mainController.controller('htmlController', ['$scope', '$rootScope', '$http', '$
 				$rootScope.isLoggedIn = false;
 				$cookies.remove('FCCurrentUser');
 				$cookies.remove('FCCurrentTask');
-				console.log("Cookie deleted");
 				$location.path('/');
 			})
 			.error(function(data) {
-				console.log('Errors: ' + data);
 				$rootScope.loggedUser = {};
 				$rootScope.isLoggedIn = false;
 			});
@@ -98,7 +96,7 @@ mainController.controller('detailsController', ['$scope', '$http', '$routeParams
 		});
 }]);
 
-mainController.controller('authenticationController', ['$scope', '$rootScope', '$http', '$cookies', '$location', function($scope, $rootScope, $http, $cookies, $location) {
+mainController.controller('authenticationController', ['$scope', '$rootScope', '$http', '$cookies', '$location', '$controller', function($scope, $rootScope, $http, $cookies, $location, $controller) {
 	$scope.createUser = function() {
 		$rootScope.clearMessage();
 		if (typeof $scope.user == "undefined" || typeof $scope.user.email == "undefined" || typeof $scope.user.password == "undefined" ) {
@@ -122,9 +120,16 @@ mainController.controller('authenticationController', ['$scope', '$rootScope', '
 				var expired = new Date(today);
 				expired.setDate(today.getDate() + 1); //Set expired date to tomorrow
 				$cookies.putObject('FCCurrentUser', data, {expire : expired });
-				console.log("Cookie created : " + $cookies);
-				$(".register-box").slideUp();
-				$(".register-success").slideDown();
+
+				if ($cookies.getObject('FCGuestTask')) {
+					$rootScope.createTask($cookies.getObject('FCGuestTask'));
+					$cookies.remove('FCGuestTask');
+				};
+
+				$(".register-box").slideUp(200, function() {
+					$(".register-success").slideDown(200);
+				});
+				
 			})
 			.error(function(data) {
 				if (typeof $scope.user !== 'undefined') {
@@ -153,7 +158,6 @@ mainController.controller('authenticationController', ['$scope', '$rootScope', '
 				var expired = new Date(today);
 				expired.setDate(today.getDate() + 1); //Set expired date to tomorrow
 				$cookies.putObject('FCCurrentUser', data, {expire : expired });
-				console.log("Cookie created : " + $cookies);
 
 				$location.path('/');
 			})
@@ -178,7 +182,6 @@ mainController.controller('authenticationController', ['$scope', '$rootScope', '
 				var expired = new Date(today);
 				expired.setDate(today.getDate() + 1); //Set expired date to tomorrow
 				$cookies.putObject('FCCurrentUser', data, {expire : expired });
-				console.log("Cookie created : " + $cookies);
 
 				$location.path('/');
 			})
@@ -200,14 +203,32 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 				console.log('Errors: ' + data);
 			});
 
-			$scope.videoPreview = $('.file-preview video');
-			$scope.audioPreview = $('.file-preview audio');
+		$scope.videoPreview = $('.file-preview video');
+		$scope.audioPreview = $('.file-preview audio');
 	};
 
 	$('.start').click(function() {
 		$(this).parent().slideUp(200, function() {
 			$('.uploadForm').slideDown(200);
 		});
+
+		$('.url-link input').val("");
+		$('.filename').empty();
+		$('.file-preview').slideUp(200);
+
+		$('.btn-upload').attr('disabled', 'disabled');
+		$('.output-select').attr('disabled', 'disabled');
+	});
+
+	$('.file-btn').click(function() {
+		$('.url-link').slideUp(200);
+		$('.url-link input').val("");
+	});
+
+	$('.url-btn').click(function() {
+		$('.url-link').slideDown(200);
+		$('.filename').empty();
+		$('.file-preview').slideUp(200);
 	});
 
 	$('.btn-cancel').click(function() {
@@ -246,7 +267,7 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 		$('.btn-upload').attr('disabled', 'disabled');
 		$('.output-select').attr('disabled', 'disabled');
 		$('.filename').empty();
-		$('.file-preview').slideUp();
+		$('.file-preview').slideUp(200);
 /*		$('.file-preview').animate({ 'overflow': "hidden", 'height': 0, 'margin-bottom': 0 }, { duration: 300 }).empty().hide();
 */
 		//Show every output
@@ -272,8 +293,9 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 				$('.file-preview').html($scope.audioPreview);
 				previewHeight = 30;
 			};
+
 			//Check type and size requirements
-			if (!$scope.upload_form.file.$error.maxSize && !$scope.upload_form.file.$error.pattern) {
+			if ((!$scope.upload_form.file.$error.maxSize && !$scope.upload_form.file.$error.pattern)) {
 				$('.btn-upload').removeAttr('disabled');
 				$('.output-select').removeAttr('disabled');
 			};
@@ -286,52 +308,143 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 /*			$('.file-preview').show().delay(1000).animate({ 'overflow': "visible", 'height': previewHeight, 'margin-bottom': 15 }, { duration: 300 });
 */		};
 
+		if ($scope.url !== "undefined") {
+			var videoFormats = ["AVI", "MP4", "MKV", "3GP", "FLV", "MOV", "M2TS", "TS", "MPG", "OGG", "WEBM", "WMV"];
+			var audioFormats = ["MP3", "AAC", "AIFF", "FLAC", "M4A", "OGG", "WAV", "WMA"];
+
+			var input = ($scope.url.split('.')[$scope.url.split('.').length -1]).toUpperCase();
+			if (jQuery.inArray(input, videoFormats)) {
+				$scope.isVideo = true;
+			} else if (jQuery.inArray(input, audioFormats)) {
+				$scope.isVideo = false;
+			} else {
+				$rootScope.errors.push("The link provided is not an audio nor a video");
+			};
+
+
+			
+			$('.btn-upload').removeAttr('disabled');
+			$('.output-select').removeAttr('disabled');
+		};
+
 	};
 
 	$scope.uploadCreate = function() {
 		
 		$rootScope.clearMessage();
 
+		console.log($scope.file);
+		console.log($scope.url);
+
+		//Check File or Link not empty
+		if ($scope.url == "undefined" && $scope.file == "undefined") {
+			$rootScope.errors.push("Please provide a file OR a link");
+			return false;
+		};
+
 		//Second field check
 		if (typeof $scope.task == "undefined" || typeof $scope.task.output == "undefined") {
 			$rootScope.errors.push("Please provide a file and an output");
 			return false;
 		};
+
 		
 		//Set correct value of input, output, filename and type
 		if ($scope.file) {
 			$scope.file.input = $scope.task.input = ($scope.file.name.split('.')[$scope.file.name.split('.').length -1]).toUpperCase();
 			$scope.file.output = $scope.task.output;
-			//Check same input output
+
+			//Check different input output
 			if ($scope.file.input == $scope.file.output) {
 				$rootScope.errors.push("The file is already in " + $scope.file.output);
 				return false;
 			};
+
 			$scope.file.filename = $scope.task.filename = "ENC_" + $scope.file.output + "_" + $scope.file.name;
 			$scope.task.type = $scope.file.type.split('/')[0];
 			$scope.task.size = $('.inputFile').get(0).files[0].size;
 			Upload.mediaDuration($scope.file).then(function(durationInSeconds) {
 				$scope.task.duration = durationInSeconds;
 				if($scope.upload_form.file.$valid) {
-					$('.uploadForm').slideUp(200);
-					$('.upload-info').slideDown(200);
+					$('.uploadForm').slideUp(200, function() {
+						$('.upload-info').slideDown(200);
+					});
 					$scope.upload($scope.file);
 				};
+			});
+		} else if ($scope.url !== "undefined") {
+			$scope.task.input = ($scope.url.split('.')[$scope.url.split('.').length -1]).toUpperCase();
+			
+
+			console.log($scope.task.input);
+
+			//Check different input output
+			if ($scope.task.input == $scope.task.output) {
+				$rootScope.errors.push("The file is already in " + $scope.task.output);
+				return false;
+			};
+
+			$scope.task.filename = "ENC_" + $scope.task.output + "_" + ($scope.url.split('/')[$scope.url.split('/').length -1]);
+			//$scope.createTask($scope.task);
+
+			var username = "guest";
+			if ($rootScope.isLoggedIn) {
+				username = $rootScope.loggedUser.email;
+			};
+			console.log(username);
+			console.log($scope.task.filename);
+			
+			var downloadData = {
+				url: $scope.url,
+				username: username,
+				filename: $scope.task.filename
+			};
+
+			$http.post("/download/url", downloadData)
+				.success(function(data) {
+					console.log('done');
+					return false;
+					if ($rootScope.isLoggedIn) {
+						$scope.createTask($scope.task);
+					} else {
+						var today = new Date();
+						var expired = new Date(today);
+						expired.setDate(today.getDate() + 1); //Set expired date to tomorrow
+						$cookies.putObject('FCGuestTask', $scope.task, {expire : expired });
+					};
+				})
+				.error(function(data) {
+					$rootScope.errors.push("Download of url link failed");
+				});
+
+			$('.uploadForm').slideUp(200, function() {
+				$('.download-info').slideDown(200);	
 			});
 		};	
 				
 	};
 
 	$scope.upload = function(file) {
+		var username = "guest";
+		if ($rootScope.isLoggedIn) {
+			username = $rootScope.loggedUser.email;
+		};
 		Upload.upload({
 			url: '/upload',
 			method: 'POST',
-			data: {file: file, input: $scope.file.input, output: $scope.file.output, filename: $scope.file.filename }
+			data: {username: username, file: file, input: $scope.file.input, output: $scope.file.output, filename: $scope.file.filename }
 		}).then(function (resp) {
 			if (resp.data.error_code === 0) {
 				$rootScope.infos.push(resp.config.data.file.name + " uploaded");
 				$scope.task.filename = resp.data.filename;
-				$scope.createTask($scope.task);
+				if ($rootScope.isLoggedIn) {
+					$scope.createTask($scope.task);
+				} else {
+					var today = new Date();
+					var expired = new Date(today);
+					expired.setDate(today.getDate() + 1); //Set expired date to tomorrow
+					$cookies.putObject('FCGuestTask', $scope.task, {expire : expired });
+				};
 				$scope.file = {};
 				$scope.task = {};
 			} else {
@@ -345,7 +458,7 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 		});
 	};
 
-	$scope.createTask = function(task) {
+	$rootScope.createTask = function(task) {
 		$http.post('/task/create', task)
 			.success(function(data) {
 				$rootScope.infos.push("Task created");
@@ -369,13 +482,27 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 	};
 
 	$scope.convert = function(taskId, taskStatus) {
-		$rootScope.currentTask = taskId;
-		/*if (taskStatus == "Paid") {
-			$location.path('/convert');
+		if (taskId == -123) {
+			$http.get('/task/get/')
+			.success(function(data) {
+				taskId = data[0]._id;
+				checkStatus(taskId, taskStatus);
+			})
+			.error(function(data) {
+			})
 		} else {
-			$location.path('/pay');
-		};*/
-		$location.path('/convert');
+			checkStatus(taskId, taskStatus);
+		};
+
+		function checkStatus(taskId, taskStatus) {
+			$rootScope.currentTask = taskId;
+			/*if (taskStatus == "Paid") {
+				$location.path('/convert');
+			} else {
+				$location.path('/pay');
+			};*/
+			$location.path('/convert');
+		}
 	};
 
 }]);
@@ -387,7 +514,6 @@ mainController.controller('payController', ['$scope', '$rootScope', '$http', '$l
 		var expired = new Date(today);
 		expired.setDate(today.getDate() + 1); //Set expired date to tomorrow
 		$cookies.putObject('FCCurrentTask', $rootScope.currentTask, {expire : expired });
-		console.log("Cookie created : " + $cookies);
 	} else if ($cookies.getObject('FCCurrentTask')) {
 		$rootScope.currentTask = $cookies.getObject('FCCurrentTask');
 	};
@@ -398,7 +524,6 @@ mainController.controller('payController', ['$scope', '$rootScope', '$http', '$l
 			$scope.task.price = getPrice(data);
 		})
 		.error(function(data) {
-			//$rootScope.errors.push("No task found");
 		})
 
 	$scope.pay = function(price) {
@@ -449,7 +574,6 @@ mainController.controller('convertController', ['$scope', '$rootScope', '$http',
 		var expired = new Date(today);
 		expired.setDate(today.getDate() + 1); //Set expired date to tomorrow
 		$cookies.putObject('FCCurrentTask', $rootScope.currentTask, {expire : expired });
-		console.log("Cookie created : " + $cookies);
 	} else if ($cookies.getObject('FCCurrentTask')) {
 		$rootScope.currentTask = $cookies.getObject('FCCurrentTask');
 	};

@@ -66,6 +66,7 @@ a.btn {
 p {
 	font-size: 16px;
 	margin: 0;
+	margin-bottom: 15px;
 }
 
 section {
@@ -85,7 +86,6 @@ section.white {
 	font-family: "Montserrat", Arial, sans-serif;
     border: solid #96281B 2px;
     border-radius: 0;
-	margin-right: 10px;
 }
 
 .btn-default {
@@ -120,6 +120,32 @@ section.white {
 .btn-control.active.focus, .btn-control.active:focus, .btn-control.active:hover, .btn-control:active.focus, .btn-control:active:focus, .btn-control:active:hover, .btn-control:hover, .btn-control.focus, .btn-control:focus, .btn-control:active {
 	background: #F3F3F3;
 	outline: none;
+}
+
+.btn-full-container {
+	padding: 0;
+}
+
+.btn-full-container:first-of-type {
+	padding-right: 5px;
+}
+
+.btn-full-container:last-of-type {
+	padding-left: 5px;
+}
+
+.btn-full {
+	width: 100%;
+	height: 50px;
+	font-size: 18px;
+}
+
+.btn-full {
+	line-height: 35px;
+}
+
+.url-link {
+	display: none;
 }
 
 .form-control {
@@ -231,7 +257,7 @@ section.white {
 }
 
 .list-group-item.task .content {
-	width: 55%;
+	width: 50%;
     vertical-align: middle;
     overflow: hidden;
     white-space: nowrap;
@@ -248,6 +274,10 @@ section.white {
 	display: none;
 	height: 80px;
 	line-height: 80px;
+}
+
+.list-group-item a.btn {
+	color: #333 !important;
 }
 
 .glyphicon {
@@ -368,7 +398,7 @@ section.hero > div > div > div {
 	background: #FFFFFF;
 	padding: 50px;
 	position: relative;
-	bottom: 25px;
+	bottom: 50px;
 }
 
 /* UPLOAD */
@@ -410,7 +440,7 @@ section.hero > div > div > div {
 	max-height: 250px;
 }
 
-.upload-info {
+.upload-info, .download-info {
 	display: none;
 }
 
@@ -494,6 +524,10 @@ section.hero > div > div > div {
 
 @media (max-width: 767px) {
 
+	body {
+		background: white;
+	}
+
 	.navbar-collapse ul li span:last-child {
 		display: inline-block;
 	}
@@ -529,6 +563,10 @@ section.hero > div > div > div {
 	section.hero > div > div > div {
 		padding: 50px;
 		bottom: 0;
+	}
+
+	.info-tasks {
+		display: none;
 	}
 
 	.task span.task-info {

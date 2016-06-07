@@ -36,15 +36,22 @@
 		}
 		console.log('Message sent: ' + info.response);
 	});*/
+	var mongoServer = config.mongoServer;
+	var serverNumber = 1;
 
+	connectDB(mongoServer);
 
-	mongoose.connect('mongodb://' + config.mongoServer + '/' + config.databaseName, function(err){
-		if (err) {
-			console.log('[!] Mongo DB connection error...'.red, err);
-		} else {
-			console.log('[x] Mongo DB connection succesful !'.green);		
-		};
-	})
+	function connectDB(mongoServer) {
+		mongoose.connect('mongodb://' + config.mongoServer + '/' + config.databaseName, function(err){
+			if (err) {
+				console.log('[/] Mongo DB connection error, trying another one...'.red);	
+				serverNumber++;
+				connectDB(mongoServer+serverNumber)
+			} else {
+				console.log('[x] Mongo DB connection succesful !'.green);		
+			};
+		})
+	};
 	
 	require('./app/passport')(app);
 
@@ -52,71 +59,6 @@
 	app.use(bodyParser.urlencoded({'extended':'true'}));
 	app.use(bodyParser.json());
 	app.use(routes);
-
-	
-
-/*	app.get("/get", function(request, response) {
-		Customer.find(function(err, customers) {
-			if (err) {
-				return console.error(err);
-			};
-			response.json(customers);
-		});
-	});
-
-	app.post("/add", function(request, response) {
-		var customer = new Customer({name: request.body.name, age: request.body.age});
-
-		customer.save(function(err){
-			if (err) {
-				console.log(err);
-			} else {
-				console.log(customer.name + " has been added");
-			};
-		});
-
-		Customer.find(function(err, customers) {
-			if (err)
-				res.send(err);
-			response.json(customers);
-		});
-	});
-
-	app.get("/update/:name", function(request, response) {
-		Customer.update({name: request.params.name}, {age: 22}, function(err){
-			if (err) {
-				console.log(err);
-			} else {
-				console.log(request.params.name + " has been updated");
-			};
-		});
-	});
-
-	app.delete("/delete/:id", function(request, response) {
-		Customer.remove({_id: request.params.id}, function(err){
-			if (err) {
-				console.log(err);
-			} else {
-				console.log(request.params.name + " has been removed");
-			};
-		});
-
-		Customer.find(function(err, customers) {
-			if (err)
-				res.send(err);
-			response.json(customers);
-		})
-	});
-
-	app.get("/get/:name", function(request, response) {
-
-		Customer.findOne({name: request.params.name}, function(err, customer) {
-			if (err) {
-				return console.error(err);
-			};
-			response.json(customer);
-		});
-	});*/
 
 	app.get('*', function(req, res) {
 		res.sendFile(path.join(__dirname, '/public', 'index.html'));

@@ -6,6 +6,7 @@ var passport = require("passport");
 var User = model.user;
 var Task = model.task;
 var multer = require("multer");
+var http = require('http');
 var fs = require("fs");
 var paypal = require('paypal-rest-sdk');
 
@@ -74,7 +75,7 @@ router.post("/register", function(req, res, next) {
 });
 
 /* LOGOUT */
-router.get("/logout", isAuthenticated, function(req, res) {
+router.get("/logout", function(req, res) {
 	console.log("[Route] POST Logout".cyan);
 	req.logout();
 	res.redirect("/");
@@ -253,6 +254,11 @@ router.post("/task/create", isAuthenticated, function(req, res) {
 			console.log(task.name + " has been created".green);
 		};
 	});
+	
+	checkDirectorySync(config.iscsiServer + "uploads/" + req.user.email);
+	fs.rename(config.iscsiServer + "uploads/guest/" + task.filename, config.iscsiServer + "uploads/" + req.user.email + "/" + task.filename, function(err) {
+	    if ( !err ) console.log("Upload of ".green + req.body.filename + " success !".green);
+	});
 
 	getTasksFromUser(req.user.email, res);
 
@@ -307,13 +313,19 @@ function getTasksFromUser(email, res) {
 	Task.find({owner: email}, null, {sort: {date: -1}}, function(err, tasks) {
 		if (err)
 			res.send(err);
+
+
+		for (var i = 0; i < tasks.length; i++) {
+			tasks[i].path = config.iscsiServer + "converted/" + tasks[i].owner + "/" + tasks[i].filename;
+		};
+		console.log(tasks);
 		res.json(tasks);
 	});
 }
 
 /*** UPLOAD ***/
 	
-router.post("/upload", isAuthenticated, function(req, res) {
+router.post("/upload", function(req, res) {
 	
 	var storage = multer.diskStorage({
 		destination: function(req, file, cb) {
@@ -337,57 +349,66 @@ router.post("/upload", isAuthenticated, function(req, res) {
 			return;
 		};
 
-		Task.findOne({owner: req.user.email, name: req.body.filename + " " + req.body.input + " to " + req.body.output}, function(err, task) {
+		Task.findOne({owner: req.body.username, name: req.body.filename + " " + req.body.input + " to " + req.body.output}, function(err, task) {
 			if (err) {
 				console.log("taskExistCheck Error".red);
 			};
 				
 			if (task) {
 				console.log(task.name + " already exists".red);
-				/*res.json({error_code: 1, err_desc: task.name + " already exists"});
-				return;*/
 			};
 
 			var filename = req.body.filename;
-			var oldFilename = req.body.filename;
+			var oldFilename = req.file.originalname;
 			var copyNumber = 1;
 
 			checkDirectorySync( config.iscsiServer + "uploads");
-			checkFileExist();
+			checkFileExist(filename, filename, req.body.username, copyNumber, req, res, function(filename) {
+				moveRename(filename, oldFilename, req.body.username, req, res);
+			});
+			
 
-			function checkFileExist() {
-				if (copyNumber != 1) {
-					filename = "(" + copyNumber + ")" + req.body.filename;
-				};
-
-				//Check if the file exist, Yes => Create a second, No => Just create
-				fs.exists(config.iscsiServer + "uploads/" + req.user.email + "/" + filename, function(exists) {
-					if (exists) {
-						console.log(filename + " exists".red);
-						copyNumber++;
-						checkFileExist();
-					} else {
-						console.log(filename + " does not exist".green);
-						moveRename();
-					};
-				});
-					
-			}
-
-			function moveRename() {
-				req.body.filename = filename;
-				checkDirectorySync(config.iscsiServer + "uploads/" + req.user.email);
-
-				//Rename and move the file to the correct path
-				fs.rename(config.iscsiServer + "tmp/" + req.file.originalname, config.iscsiServer + "uploads/" + req.user.email + "/" + req.body.filename, function(err) {
-				    if ( err ) console.log("ERROR: " + err);
-				    console.log("Upload of ".green + req.body.filename + " success !".green);
-					res.json({error_code:0, err_desc: null, filename: filename});
-				});
-			}
 		});
 	}); /* End of upload */
 
+});
+
+router.post("/download/url", function(req, res) {
+
+	var filename = oldFilename = req.body.filename;
+	var copyNumber = 1;
+
+	checkDirectorySync( config.iscsiServer + "uploads");
+
+	checkFileExist(filename, oldFilename, req.body.username, copyNumber, req, res, function(filename) {
+		download(req.body.url, config.iscsiServer + "uploads/" + req.body.username + "/" + filename);
+	});
+
+	function download(url, dest, cb) {
+		var file = fs.createWriteStream(dest);
+		var request = http.get(url, function(response) {
+			response.pipe(file);
+			var len = parseInt(response.headers['content-length'], 10);
+            var cur = 0;
+
+            
+
+			response.on("data", function(chunk) {
+                cur += chunk.length;
+                res.write("event: dl_url_percent\n");
+      			res.write("data: " + (100.0 * cur / len).toFixed(2).toString() + "\n\n");
+  				
+
+			});
+
+			file.on('finish', function() {
+		  		file.close(cb);  // close() is async, call cb after close completes.
+			});
+		}).on('error', function(err) { // Handle errors
+			fs.unlink(dest); // Delete the file async. (But we don't check the result)
+			if (cb) cb(err.message);
+		});
+	};
 });
 
 /***************
@@ -494,6 +515,36 @@ function checkDirectorySync(directory) {
 		fs.mkdirSync(directory);
 	}
 	console.log("Directory ".green + directory + " exists".green);
+}
+
+function checkFileExist(filename, oldFilename, username, copyNumber, req, res, callback) {
+	if (copyNumber != 1) {
+		filename = "(" + copyNumber + ")" + filename;
+	};
+
+	//Check if the file exist, Yes => Create a second, No => Just create
+	fs.exists(config.iscsiServer + "uploads/" + username + "/" + filename, function(exists) {
+		if (exists) {
+			console.log(filename + " exists".red);
+			copyNumber++;
+			checkFileExist(oldFilename, oldFilename, username, copyNumber, req, res, callback);
+		} else {
+			console.log(filename + " does not exist".green);
+			callback(filename);
+		};
+	});
+		
+}
+
+function moveRename(filename, oldFilename, username, req, res) {
+	checkDirectorySync(config.iscsiServer + "uploads/" + username);
+	console.log(filename + " " + oldFilename);
+	//Rename and move the file to the correct path
+	fs.rename(config.iscsiServer + "tmp/" + oldFilename, config.iscsiServer + "uploads/" + username + "/" + filename, function(err) {
+	    if ( err ) console.log("ERROR: " + err);
+	    console.log("Upload of ".green + filename + " success !".green);
+		res.json({error_code:0, err_desc: null, filename: filename});
+	});
 }
 
 module.exports = router;
