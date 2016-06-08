@@ -305,8 +305,7 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 			//Show preview
 			$('.filename').html($scope.file.name);
 			$('.file-preview').slideDown(200);
-/*			$('.file-preview').show().delay(1000).animate({ 'overflow': "visible", 'height': previewHeight, 'margin-bottom': 15 }, { duration: 300 });
-*/		};
+		};
 
 		if ($scope.url) {
 			var videoFormats = ["AVI", "MP4", "MKV", "3GP", "FLV", "MOV", "M2TS", "TS", "MPG", "OGG", "WEBM", "WMV"];
@@ -324,6 +323,7 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 				$('.file-preview').slideDown(200, function() {
 					$scope.task.duration = $('.file-preview video').get(0).duration;
 				});
+				console.log($('.url-link input'));
 			} else if (audioFormats.indexOf(input) >= 0) {
 				$scope.isVideo = false;
 				$scope.task.type = "audio"
@@ -335,7 +335,6 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 			} else {
 				$rootScope.errors.push("The link provided is not an audio nor a video");
 			};
-
 
 			$('.btn-upload').removeAttr('disabled');
 			$('.output-select').removeAttr('disabled');
@@ -422,6 +421,7 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 					console.log("dl success");
 					$scope.task.size = data.size;
 					if ($rootScope.isLoggedIn) {
+						$scope.downloadSuccess = true;
 						$scope.createTask($scope.task);
 					} else {
 						var today = new Date();
@@ -431,6 +431,7 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 					};
 				})
 				.error(function(data) {
+					$scope.downloadError = true;
 					$rootScope.errors.push("Download of url link failed");
 				});
 

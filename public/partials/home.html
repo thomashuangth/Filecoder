@@ -16,11 +16,11 @@
 
 					<form class="uploadForm" name="upload_form">
 						<h2>Choose a video or an audio</h2>
-						<div class="form-group col-xs-6 btn-full-container">
+						<div class="form-group col-sm-6 btn-full-container">
 							<input type="file" class="inputFile" name="file" id="file" ngf-select="checkFile()" ng-model="file" ngf-pattern="'video/*,audio/*,.mkv'" ngf-accept="'video/*,audio/*,.mkv,.avi,.ts'" ngf-max-size="3000MB">
 							<label for="file" class="btn btn-default btn-full file-btn"><span class="glyphicon glyphicon-file"></span>From a file</label>
 						</div>
-						<div class="form-group col-xs-6 btn-full-container">
+						<div class="form-group col-sm-6 btn-full-container">
 							<span class="btn btn-default btn-full url-btn"><span class="glyphicon glyphicon-link"></span>Or a link</span>
 						</div>
 						<div class="form-group">
@@ -31,7 +31,7 @@
 							<audio controls ngf-src="file"></audio>			
 						</div>
 						<div class="form-group url-link">
-							<input type="text" class="form-control" name="url" ng-model="url" ng-change="checkFile()" placeholder="http://yourvideourl.com">
+							<input type="url" class="form-control" name="url" ng-model="url" ng-change="checkFile()" placeholder="http://yourvideourl.com">
 						</div>
 						<div class="form-group">
 							<select class="form-control output-select" ng-model="task.output" disabled>
@@ -78,11 +78,14 @@
 						<a href="/register" class="btn btn-default" ng-hide="isLoggedIn" ng-click="clearMessage()">Register</a>
 					</div>	
 					<div class="download-info">
-						<p>Your url file is now downloading. When finished, it should appear in your tasks</p>
-						<button class="btn btn-cancel" ng-show="isLoggedIn" ng-click="clearMessage()">Upload again</button>
-						<a href="/tasks" class="btn btn-default" ng-show="isLoggedIn" >My tasks</a>
-						<button class="btn btn-cancel"ng-hide="isLoggedIn" ng-click="clearMessage()">Cancel</button>
-						<a href="/register" class="btn btn-default" ng-hide="isLoggedIn" ng-click="clearMessage()">Register</a>
+						<h2 ng-hide="downloadSuccess || downloadError">We are checking your url<br>Please wait...</h2>
+						<h2 ng-show="downloadSuccess">Your file is downloaded</h2>
+						<h2 ng-show="downloadError">Your URL is not correct, try again</h2>
+						<img src="/img/loading.gif" alt="Loading Gif" ng-hide="downloadSuccess || downloadError"><br>
+						<button class="btn btn-cancel" ng-show="isLoggedIn && (downloadSuccess || downloadError)" ng-click="clearMessage()">Upload again</button>
+						<a href="/tasks" class="btn btn-default" ng-show="isLoggedIn && downloadSuccess" >My tasks</a>
+						<button class="btn btn-cancel" ng-show="(downloadSuccess || downloadError) && !isLoggedIn" ng-click="clearMessage()">Cancel</button>
+						<a href="/register" class="btn btn-default" ng-show="downloadSuccess && !isLoggedIn" ng-click="clearMessage()">Register</a>
 					</div>
 				</div>
 			</div>

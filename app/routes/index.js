@@ -11,6 +11,7 @@ var http = require('http');
 var fs = require("fs");
 var paypal = require('paypal-rest-sdk');
 var nodemailer = require('nodemailer');
+var SSH = require("simple-ssh");
 
 var config = require("../config");
 
@@ -214,6 +215,7 @@ function paypalCreation(payment, req, res) {
 
 router.get("/task/get/:id", isAuthenticated, function(req, res) {
 
+	console.log("\n Getting one task...");
 	Task.findOne({_id: req.params.id}, function(err, task) {
 		if (err) {
 			console.log("Finding current task error".red);
@@ -236,7 +238,7 @@ router.get("/task/get", isAuthenticated, function(req, res) {
 });
 
 router.post("/task/create", isAuthenticated, function(req, res) {
-	console.log("Creating new task...");
+	console.log("\nCreating new task...");
 	var task = new Task({
 		owner: req.user.email, 
 		name: req.body.filename + " " + req.body.input + " to " + req.body.output, 
@@ -267,6 +269,7 @@ router.post("/task/create", isAuthenticated, function(req, res) {
 });
 
 router.get("/task/update/:id", isAuthenticated, function(req, res) {
+	console.log("\n Updating task...");
 	Task.update({_id: req.params.id}, {status: "Paid", paid: true}, function(err){
 		if (err) {
 			console.log(err);
@@ -280,6 +283,7 @@ router.get("/task/update/:id", isAuthenticated, function(req, res) {
 
 router.delete("/task/delete/:id", isAuthenticated, function(req, res) {
 
+	console.log("\n Deleting task...");
 	Task.findOne({_id: req.params.id}, function(err, task) {
 		if (err) {
 			console.log("Finding current task error".red);
@@ -301,7 +305,7 @@ router.delete("/task/delete/:id", isAuthenticated, function(req, res) {
 					console.log(err);
 					res.send(err);
 				} else {
-					console.log("Task has been removed");
+					console.log("Task has been removed".green);
 				};
 			});
 
@@ -341,7 +345,7 @@ router.post("/upload", function(req, res) {
 
 	var upload = multer({storage: storage}).single("file");
 
-	console.log("Upload process");
+	console.log("\nUpload process");
 	upload(req, res, function(err) {
 		"use strict";
 
@@ -379,14 +383,42 @@ router.post("/download/url", function(req, res) {
 
 	var filename = oldFilename = req.body.filename;
 	var copyNumber = 1;
-	
+	console.log("URL : " + req.body.url);
 
-	checkDirectorySync( config.storageServer + "uploads");
-	checkDirectorySync(config.storageServer + "uploads/guest");
+	checkURL(req.body.url, function(response) {
+		console.log("\nChecking URL");
+		if (response) {
+			console.log("Good URL".green);
+			checkDirectorySync(config.storageServer + "uploads");
+			checkDirectorySync(config.storageServer + "uploads/guest");
 
-	checkFileExist(filename, oldFilename, req.body.username, copyNumber, req, res, function(filename) {
-		download(req.body.url, config.storageServer + "uploads/" + req.body.username + "/" + encodeURI(filename));
+			checkFileExist(filename, oldFilename, req.body.username, copyNumber, req, res, function(filename) {
+				download(req.body.url, config.storageServer + "uploads/" + req.body.username + "/" + encodeURI(filename));
+			});
+		} else {
+			console.log("Wrong URL".red);
+			res.status(500).send("Wrong URL");
+		};
 	});
+
+	function checkURL(Url, callback) {
+        var http = require('http'),
+            url = require('url');
+        var options = {
+            method: 'HEAD',
+            host: url.parse(Url).host,
+            port: 80,
+            path: url.parse(Url).pathname
+        };
+        var req = http.request(options, function (r) {
+            callback( r.statusCode == 200);
+        });
+
+        req.on('error', function(err) {
+        	callback(false);
+        })
+        req.end();
+    }
 
 	function download(url, dest, cb) {
 		var file = fs.createWriteStream(dest);
@@ -445,7 +477,7 @@ router.get("/convert", isAuthenticated, function(req, res) {
 
 router.post("/converting", isAuthenticated, function(req, res) {
 	console.log("[Route] POST Convert".cyan);
-	console.log("Converting...");
+	console.log("\nConverting...");
 
 	var file = {
 		taskId : req.body._id,
@@ -463,7 +495,7 @@ router.post("/converting", isAuthenticated, function(req, res) {
 
 	function checkQueue(file, queue) {
 
-		console.log("Checking queue...");
+		console.log("\nChecking queue...");
 		//Checking if tasks in queue
 		Queue.find({}, function(err, queues) {
 			if (err)
@@ -473,7 +505,7 @@ router.post("/converting", isAuthenticated, function(req, res) {
 			if (queues.length > 0) {
 				//Proccessing oldest task first
 				file = queues[0];
-				console.log("There are tasks in queue");
+				console.log("There are tasks in queue".red);
 				if (queue) {
 					//Checking if task already in queue
 					Queue.find({owner: queue.owner, filename: queue.filename}, function(err, currentQueue) {
@@ -496,15 +528,28 @@ router.post("/converting", isAuthenticated, function(req, res) {
 						};	
 					});
 				} else {
-					console.log("Filecoding...");
+					console.log("\nFilecoding...");
 					if (file) {
 						filecode(file);	
 					};
 				};
 				
 			} else {
-				console.log("Filecoding...");
+				console.log("Nothing in queue !".green);
+				if (queue) {
+					//Adding task in queue
+					queue.save(function(err){
+						if (err) {
+							console.log(err);
+							res.send(err);
+						} else {
+							console.log("New task has been added in queue".green);
+						};
+					});	
+				};
+				
 				if (file) {
+					console.log("\nFilecoding...");
 					filecode(file);	
 				};
 			};
@@ -512,6 +557,13 @@ router.post("/converting", isAuthenticated, function(req, res) {
 	};
 
 	function filecode(file) {
+
+		var ssh = new SSH({
+			host: '192.168.18.10',
+			user: 'pi',
+			pass: 'caca1234'
+		})
+
 		if (file.duration > 200) {
 			console.log("Duration + 200");
 			//SHELLJSSTUFF
@@ -520,27 +572,39 @@ router.post("/converting", isAuthenticated, function(req, res) {
 			//SHELLJSSTUFF
 		};
 
-		/*Queue.remove({_id: file._id}, function(err){
-			if (err) {
-				console.log(err);
-				res.send(err);
-			} else {
-				console.log("Task removed from queue".green);
-			};
-		});*/
+		var cmd = "ls";
 
-		checkQueue();
+		ssh.exec(cmd, {
+			out: function(stdout) {
+				console.log(stdout);
+			},
+			exit: function(code) {
+				console.log("========== EXIT ==========");
+				console.log(code);
 
-		//Change Tasks Status
-		Task.update({_id: file.taskId}, {status: "Converted"}, function(err){
-			if (err) {
-				console.log(err);
-				console.log("Can't update the converted task".red);
-			} else {
-				console.log("The task is now converted".green);
-				res.send("The task is now converted");
-			};
-		});
+				Queue.remove({taskId: file.taskId}, function(err){
+					if (err) {
+						console.log(err);
+						res.send(err);
+					} else {
+						console.log("Task removed from queue".green);
+						checkQueue();
+					};
+				});
+
+				//Change Tasks Status
+				Task.update({_id: file.taskId}, {status: "Converted"}, function(err){
+					if (err) {
+						console.log(err);
+						console.log("Can't update the converted task".red);
+					} else {
+						console.log("The task is now converted".green);
+					};
+				});
+			}
+		}).start();
+
+		
 
 		//Change filename for download
 
@@ -582,7 +646,7 @@ router.get("/whoami", isAuthenticated, function(req, res) {
 ***************/
 
 function isAuthenticated(req, res, next) {
-	console.log("Checking if user is authenticated...");
+	console.log("\nChecking if user is authenticated...");
 	if (req.isAuthenticated()) {
 		console.log("Authorized route !".green)
 		return next();
@@ -592,7 +656,7 @@ function isAuthenticated(req, res, next) {
 };
 
 function isNotAuthenticated(req, res, next) {
-	console.log("Checking if user is not authenticated...");
+	console.log("\nChecking if user is not authenticated...");
 	if (!req.isAuthenticated()) {
 		console.log("Authorized route ! !".green);
 		return next();
@@ -602,7 +666,7 @@ function isNotAuthenticated(req, res, next) {
 
 function checkDirectorySync(directory) {
 	try {
-		console.log("Checking directory");
+		console.log("\nChecking directory");
 		fs.statSync(directory);
 	} catch(e) {
 		console.log("Creating directory : ".green + directory);

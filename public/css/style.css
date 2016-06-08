@@ -519,7 +519,7 @@ section.hero > div > div > div {
 	}
 
 	.list-group-item.task .content {
-		width: 35%;
+		width: 33%;
 	}
 }
 
@@ -566,6 +566,10 @@ section.hero > div > div > div {
 		bottom: 0;
 	}
 
+	.btn-full-container {
+		padding: 0 !important;
+	}
+
 	.info-tasks {
 		display: none;
 	}
@@ -577,7 +581,7 @@ section.hero > div > div > div {
 	.list-group-item.task .content {
 		width: 100%;
 		display: inline;
-	}	
+	}
 
 }
 

@@ -40,7 +40,15 @@
 	app.use(bodyParser.json());
 	app.use(routes);
 
+	app.all('/*', function(req, res, next) {
+	    res.header('Access-Control-Allow-Origin', '*');
+	    res.header('Access-Control-Allow-Headers', 'Content-Type,X-Requested-With');
+	    next();
+	});
+
 	app.get('*', function(req, res) {
+		res.header('Access-Control-Allow-Origin', '*');
+	    res.header('Access-Control-Allow-Headers', 'Content-Type,X-Requested-With');
 		res.sendFile(path.join(__dirname, '/public', 'index.html'));
 		console.log('[Route] *'.cyan);
 	});
