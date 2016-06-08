@@ -5,7 +5,7 @@ module.exports = {
 	'mongoServer3' 	: '192.168.75.90',		/* 192.168.X.X */
 	'databaseName' 	: 'transcoder',			/* transcoder */
 	'domain'		: 'transcoder.com', 	/* Don't forget to change Social Network Callback URI */
-	'iscsiServer'	: '/mnt/isci/' 			/* /mnt/iscsi/ */
+	'storageServer'	: '/mnt/isci/' 			/* /mnt/iscsi/ */
 
 	'paypal' : {
 		'client_id'		: 'AXwGfKoKJxre0qqLXflMwqHWRNh3a1eyln7DuLYbOlSiU5T8F7dJEZaJsrvmFWXAbowBGTXscEkEHexJ',

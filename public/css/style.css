@@ -59,7 +59,7 @@ a.btn {
 	color: white !important;
 }
 
-:hover, a, .btn {
+a, .btn {
 	transition: all 0.1s ease-in-out;
 } 
 
@@ -67,6 +67,7 @@ p {
 	font-size: 16px;
 	margin: 0;
 	margin-bottom: 15px;
+	word-break: break-all;
 }
 
 section {
@@ -518,7 +519,7 @@ section.hero > div > div > div {
 	}
 
 	.list-group-item.task .content {
-		width: 40%;
+		width: 35%;
 	}
 }
 

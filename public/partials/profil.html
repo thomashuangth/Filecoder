@@ -4,7 +4,9 @@
 			<div class="row">
 				<div class="col-md-offset-2 col-md-8 box">
 					<h1>Profil</h1>
-					Welcome {{ loggedUser.username ? loggedUser.username : loggedUser.email }}
+					<h2>Welcome {{ loggedUser.username ? loggedUser.username : loggedUser.email }}</h2>
+					<p ng-show="loggedUser.token">If you want to change your password, change your Google/Facebook account settings</p>
+					<p ng-hide="loggedUser.token">Change password</p>
 					<br>
 					<button ng-show="isLoggedIn" class="btn btn-default" ng-click="logOut()">Logout</button>
 				</div>

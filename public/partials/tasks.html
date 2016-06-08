@@ -53,7 +53,7 @@
 								<span class="glyphicon glyphicon-chevron-down"></span>
 							</span>
 							<span class="pull-right task-info">
-								<span class="badge badge-2 pull-left">{{ task.size | bytes }}</span> 
+								<span class="badge badge-2 pull-left" ng-show="task.size">{{ task.size | bytes }}</span> 
 								<span class="badge badge-2 pull-left">{{ task.type | uppercase }}</span>
 								{{ task.date | date: 'yyyy-MM-dd HH:mm:ss' }}
 							</span>

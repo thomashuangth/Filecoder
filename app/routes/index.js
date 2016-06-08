@@ -5,10 +5,12 @@ var model = require("../../app/models/index.js");
 var passport = require("passport");
 var User = model.user;
 var Task = model.task;
+var Queue = model.queue;
 var multer = require("multer");
 var http = require('http');
 var fs = require("fs");
 var paypal = require('paypal-rest-sdk');
+var nodemailer = require('nodemailer');
 
 var config = require("../config");
 
@@ -255,8 +257,8 @@ router.post("/task/create", isAuthenticated, function(req, res) {
 		};
 	});
 	
-	checkDirectorySync(config.iscsiServer + "uploads/" + req.user.email);
-	fs.rename(config.iscsiServer + "uploads/guest/" + task.filename, config.iscsiServer + "uploads/" + req.user.email + "/" + task.filename, function(err) {
+	checkDirectorySync(config.storageServer + "uploads/" + req.user.email);
+	fs.rename(config.storageServer + "uploads/guest/" + task.filename, config.storageServer + "uploads/" + req.user.email + "/" + task.filename, function(err) {
 	    if ( !err ) console.log("Upload of ".green + req.body.filename + " success !".green);
 	});
 
@@ -293,7 +295,7 @@ router.delete("/task/delete/:id", isAuthenticated, function(req, res) {
 				folder = "converted/";
 			};
 			
-			fs.unlinkSync(config.iscsiServer + folder + req.user.email + "/" + task.filename);
+			fs.unlinkSync(config.storageServer + folder + req.user.email + "/" + encodeURI(task.filename));
 			Task.remove({_id: req.params.id, owner: req.user.email}, function(err){
 				if (err) {
 					console.log(err);
@@ -316,9 +318,9 @@ function getTasksFromUser(email, res) {
 
 
 		for (var i = 0; i < tasks.length; i++) {
-			tasks[i].path = config.iscsiServer + "converted/" + tasks[i].owner + "/" + tasks[i].filename;
+			tasks[i].path = "converted/" + tasks[i].owner + "/" + tasks[i].filename;
 		};
-		console.log(tasks);
+
 		res.json(tasks);
 	});
 }
@@ -329,8 +331,8 @@ router.post("/upload", function(req, res) {
 	
 	var storage = multer.diskStorage({
 		destination: function(req, file, cb) {
-			checkDirectorySync(config.iscsiServer + "tmp");
-			cb(null, config.iscsiServer + "tmp/");
+			checkDirectorySync(config.storageServer + "tmp");
+			cb(null, config.storageServer + "tmp/");
 		},
 		filename: function(req, file, cb) {
 			cb(null, file.originalname);
@@ -362,7 +364,7 @@ router.post("/upload", function(req, res) {
 			var oldFilename = req.file.originalname;
 			var copyNumber = 1;
 
-			checkDirectorySync( config.iscsiServer + "uploads");
+			checkDirectorySync( config.storageServer + "uploads");
 			checkFileExist(filename, filename, req.body.username, copyNumber, req, res, function(filename) {
 				moveRename(filename, oldFilename, req.body.username, req, res);
 			});
@@ -377,11 +379,13 @@ router.post("/download/url", function(req, res) {
 
 	var filename = oldFilename = req.body.filename;
 	var copyNumber = 1;
+	
 
-	checkDirectorySync( config.iscsiServer + "uploads");
+	checkDirectorySync( config.storageServer + "uploads");
+	checkDirectorySync(config.storageServer + "uploads/guest");
 
 	checkFileExist(filename, oldFilename, req.body.username, copyNumber, req, res, function(filename) {
-		download(req.body.url, config.iscsiServer + "uploads/" + req.body.username + "/" + filename);
+		download(req.body.url, config.storageServer + "uploads/" + req.body.username + "/" + encodeURI(filename));
 	});
 
 	function download(url, dest, cb) {
@@ -391,18 +395,18 @@ router.post("/download/url", function(req, res) {
 			var len = parseInt(response.headers['content-length'], 10);
             var cur = 0;
 
-            
-
 			response.on("data", function(chunk) {
                 cur += chunk.length;
-                res.write("event: dl_url_percent\n");
-      			res.write("data: " + (100.0 * cur / len).toFixed(2).toString() + "\n\n");
+                /*res.write("event: dl_url_percent\n");
+      			res.write("data: " + (100.0 * cur / len).toFixed(2).toString() + "\n\n");*/
   				
-
 			});
 
 			file.on('finish', function() {
 		  		file.close(cb);  // close() is async, call cb after close completes.
+		  		var stats = fs.statSync(config.storageServer + "uploads/" + req.body.username + "/" + encodeURI(filename));
+				console.log(stats);
+		  		res.json(stats);
 			});
 		}).on('error', function(err) { // Handle errors
 			fs.unlink(dest); // Delete the file async. (But we don't check the result)
@@ -443,37 +447,127 @@ router.post("/converting", isAuthenticated, function(req, res) {
 	console.log("[Route] POST Convert".cyan);
 	console.log("Converting...");
 
-	var filename = req.body.filename;
-	var duration = req.body.duration; //In seconds
-	var type = req.body.type;
-
-	/* owner: 
-	name
-	output
-	input 
-	type
-	filenam
-	duration
-	size
-	paid
-	date
-	status
-	*/
-
-	var path = config.iscsiServer + "uploads/" + req.user.email + "/" + filename
-
-	console.log(req.body);
-	if (duration > 200) {
-		console.log("Duration + 200");
-		//SHELLJSSTUFF
-	} else {
-		console.log("Duration - 200");
-		//SHELLJSSTUFF
+	var file = {
+		taskId : req.body._id,
+		filename: req.body.filename,
+		owner: req.user.email,
+		output: req.body.output, 
+		input: req.body.input,
+		duration: req.body.duration,
+		type: req.body.type
 	};
 
-	//Change Tasks Status
+	var queue = new Queue(file);
 
-	//Send mail
+	checkQueue(file, queue);
+
+	function checkQueue(file, queue) {
+
+		console.log("Checking queue...");
+		//Checking if tasks in queue
+		Queue.find({}, function(err, queues) {
+			if (err)
+				res.send(err);
+
+			//Tasks found in queue
+			if (queues.length > 0) {
+				//Proccessing oldest task first
+				file = queues[0];
+				console.log("There are tasks in queue");
+				if (queue) {
+					//Checking if task already in queue
+					Queue.find({owner: queue.owner, filename: queue.filename}, function(err, currentQueue) {
+						if (err)
+							res.send(err);
+
+						//Already in queue
+						if (currentQueue.length > 0) {
+							console.log("Already in queue".red);
+						} else {
+							//Adding task in queue
+							queue.save(function(err){
+								if (err) {
+									console.log(err);
+									res.send(err);
+								} else {
+									console.log("New task has been added in queue".green);
+								};
+							});
+						};	
+					});
+				} else {
+					console.log("Filecoding...");
+					if (file) {
+						filecode(file);	
+					};
+				};
+				
+			} else {
+				console.log("Filecoding...");
+				if (file) {
+					filecode(file);	
+				};
+			};
+		});
+	};
+
+	function filecode(file) {
+		if (file.duration > 200) {
+			console.log("Duration + 200");
+			//SHELLJSSTUFF
+		} else {
+			console.log("Duration - 200");
+			//SHELLJSSTUFF
+		};
+
+		/*Queue.remove({_id: file._id}, function(err){
+			if (err) {
+				console.log(err);
+				res.send(err);
+			} else {
+				console.log("Task removed from queue".green);
+			};
+		});*/
+
+		checkQueue();
+
+		//Change Tasks Status
+		Task.update({_id: file.taskId}, {status: "Converted"}, function(err){
+			if (err) {
+				console.log(err);
+				console.log("Can't update the converted task".red);
+			} else {
+				console.log("The task is now converted".green);
+				res.send("The task is now converted");
+			};
+		});
+
+		//Change filename for download
+
+		
+	};
+
+	function sendEmail() {
+		//Send mail
+		var transporter = nodemailer.createTransport('smtps://filecoder.transcode%40gmail.com:Supinf0pp@smtp.gmail.com');
+
+		// setup e-mail data with unicode symbols
+		var mailOptions = {
+		    from: '"Filecoder Team" <filecoder.transcode@filecoder.com>',
+		    to: 'thomashuang.th@gmail.com',
+		    subject: 'Your file conversion is complete !',
+		    text: 'Your file conversion is complete !',
+		    html: '<b>Your file is now available for download, you can click here or go to your tasks to download your converted file</b>'
+		};
+
+		// send mail with defined transport object
+		transporter.sendMail(mailOptions, function(error, info){
+			if(error){
+				return console.log(error);
+			}
+			console.log('Message sent: ' + info.response);
+		});
+	};	
 	
 	//res.json(tasks);
 });
@@ -523,7 +617,7 @@ function checkFileExist(filename, oldFilename, username, copyNumber, req, res, c
 	};
 
 	//Check if the file exist, Yes => Create a second, No => Just create
-	fs.exists(config.iscsiServer + "uploads/" + username + "/" + filename, function(exists) {
+	fs.exists(config.storageServer + "uploads/" + username + "/" + encodeURI(filename), function(exists) {
 		if (exists) {
 			console.log(filename + " exists".red);
 			copyNumber++;
@@ -537,12 +631,13 @@ function checkFileExist(filename, oldFilename, username, copyNumber, req, res, c
 }
 
 function moveRename(filename, oldFilename, username, req, res) {
-	checkDirectorySync(config.iscsiServer + "uploads/" + username);
-	console.log(filename + " " + oldFilename);
+	checkDirectorySync(config.storageServer + "uploads/" + username);
+
 	//Rename and move the file to the correct path
-	fs.rename(config.iscsiServer + "tmp/" + oldFilename, config.iscsiServer + "uploads/" + username + "/" + filename, function(err) {
+	fs.rename(config.storageServer + "tmp/" + oldFilename, config.storageServer + "uploads/" + username + "/" + encodeURI(filename), function(err) {
 	    if ( err ) console.log("ERROR: " + err);
 	    console.log("Upload of ".green + filename + " success !".green);
+
 		res.json({error_code:0, err_desc: null, filename: filename});
 	});
 }

@@ -229,6 +229,7 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 		$('.url-link').slideDown(200);
 		$('.filename').empty();
 		$('.file-preview').slideUp(200);
+		$scope.file = null;
 	});
 
 	$('.btn-cancel').click(function() {
@@ -267,9 +268,7 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 		$('.btn-upload').attr('disabled', 'disabled');
 		$('.output-select').attr('disabled', 'disabled');
 		$('.filename').empty();
-		$('.file-preview').slideUp(200);
-/*		$('.file-preview').animate({ 'overflow': "hidden", 'height': 0, 'margin-bottom': 0 }, { duration: 300 }).empty().hide();
-*/
+		$('.file-preview').slideUp(200).empty();
 		//Show every output
 		$('.output-select option').show();
 
@@ -282,6 +281,7 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 		};
 
 		if ($scope.file) {
+			$scope.url = null;
 			var previewHeight = 250;
 
 			//Check if the file type is a video
@@ -308,21 +308,35 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 /*			$('.file-preview').show().delay(1000).animate({ 'overflow': "visible", 'height': previewHeight, 'margin-bottom': 15 }, { duration: 300 });
 */		};
 
-		if ($scope.url !== "undefined") {
+		if ($scope.url) {
 			var videoFormats = ["AVI", "MP4", "MKV", "3GP", "FLV", "MOV", "M2TS", "TS", "MPG", "OGG", "WEBM", "WMV"];
 			var audioFormats = ["MP3", "AAC", "AIFF", "FLAC", "M4A", "OGG", "WAV", "WMA"];
 
+			$scope.task = {};
+
 			var input = ($scope.url.split('.')[$scope.url.split('.').length -1]).toUpperCase();
-			if (jQuery.inArray(input, videoFormats)) {
+			$('.file-preview').css("display", "inline-block");
+			if (videoFormats.indexOf(input) >= 0) {
 				$scope.isVideo = true;
-			} else if (jQuery.inArray(input, audioFormats)) {
+				$scope.task.type = "video";
+				$('.file-preview').html("<video src='" + $scope.url + "' controls></video>");
+				console.log($('.file-preview video'));
+				$('.file-preview').slideDown(200, function() {
+					$scope.task.duration = $('.file-preview video').get(0).duration;
+				});
+			} else if (audioFormats.indexOf(input) >= 0) {
 				$scope.isVideo = false;
+				$scope.task.type = "audio"
+				$('.file-preview').html("<audio src='" + $scope.url + "' controls></audio>");
+				console.log($('.file-preview audio'));
+				$('.file-preview').slideDown(200, function() {
+					$scope.task.duration = $('.file-preview audio').get(0).duration;
+				});
 			} else {
 				$rootScope.errors.push("The link provided is not an audio nor a video");
 			};
 
 
-			
 			$('.btn-upload').removeAttr('disabled');
 			$('.output-select').removeAttr('disabled');
 		};
@@ -332,9 +346,6 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 	$scope.uploadCreate = function() {
 		
 		$rootScope.clearMessage();
-
-		console.log($scope.file);
-		console.log($scope.url);
 
 		//Check File or Link not empty
 		if ($scope.url == "undefined" && $scope.file == "undefined") {
@@ -347,7 +358,6 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 			$rootScope.errors.push("Please provide a file and an output");
 			return false;
 		};
-
 		
 		//Set correct value of input, output, filename and type
 		if ($scope.file) {
@@ -363,20 +373,29 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 			$scope.file.filename = $scope.task.filename = "ENC_" + $scope.file.output + "_" + $scope.file.name;
 			$scope.task.type = $scope.file.type.split('/')[0];
 			$scope.task.size = $('.inputFile').get(0).files[0].size;
-			Upload.mediaDuration($scope.file).then(function(durationInSeconds) {
-				$scope.task.duration = durationInSeconds;
+
+			if ($scope.task.input == "AVI" || $scope.task.input == "TS") {
 				if($scope.upload_form.file.$valid) {
 					$('.uploadForm').slideUp(200, function() {
 						$('.upload-info').slideDown(200);
 					});
 					$scope.upload($scope.file);
 				};
-			});
+			} else {
+				Upload.mediaDuration($scope.file).then(function(durationInSeconds) {
+					$scope.task.duration = durationInSeconds;
+					if($scope.upload_form.file.$valid) {
+						$('.uploadForm').slideUp(200, function() {
+							$('.upload-info').slideDown(200);
+						});
+						$scope.upload($scope.file);
+					};
+				});
+			};
+
+				
 		} else if ($scope.url !== "undefined") {
 			$scope.task.input = ($scope.url.split('.')[$scope.url.split('.').length -1]).toUpperCase();
-			
-
-			console.log($scope.task.input);
 
 			//Check different input output
 			if ($scope.task.input == $scope.task.output) {
@@ -391,8 +410,6 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 			if ($rootScope.isLoggedIn) {
 				username = $rootScope.loggedUser.email;
 			};
-			console.log(username);
-			console.log($scope.task.filename);
 			
 			var downloadData = {
 				url: $scope.url,
@@ -402,8 +419,8 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 
 			$http.post("/download/url", downloadData)
 				.success(function(data) {
-					console.log('done');
-					return false;
+					console.log("dl success");
+					$scope.task.size = data.size;
 					if ($rootScope.isLoggedIn) {
 						$scope.createTask($scope.task);
 					} else {
