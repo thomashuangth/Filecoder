@@ -614,12 +614,29 @@ mainController.controller('convertController', ['$scope', '$rootScope', '$http',
 			$scope.task = data;
 
 			if ($scope.task.status != "Converted") {
-				$http.post('/converting', $scope.task)
-					.success(function(data) {
-						//$scope.status = "Converted";
-					})
-					.error(function(data) {
-					});
+				
+				filecoding($scope.task);
+
+				function filecoding(task) {
+					$http.post('/converting', task)
+						.success(function(data) {
+
+							var firstInQueue = true;
+
+							if (data == "inQueue") {
+								$scope.task.status = "inQueue";
+								firstInQueue = false;
+							} else if (data == "converted") {
+								$scope.task.status = "Converted";	
+							};
+							
+							if (data != "empty" && data != "inQueue" && firstInQueue) {
+								filecoding();
+							};
+						})
+						.error(function(data) {
+						});
+				}
 			};
 				
 		})

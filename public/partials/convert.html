@@ -2,16 +2,21 @@
 	<section>
 		<div class="container">
 			<div class="row">
-				<div class="col-md-offset-1 col-md-10 box text-center" ng-hide="task.status == 'Converted'">
+				<div class="col-md-offset-1 col-md-10 box text-center" ng-hide="task.status == 'Converted' || task.status == 'inQueue'">
 					<h1>Converting...</h1>
 					<p>Your file <span class="montserrat color">{{ task.name }}</span> is converting, please wait until the process is finished...</p>
 					<p>Meanwhile, you can convert more files</p>
-					<img src="/img/loading.gif" alt="Loading Gif" ng-hide="downloadSuccess || downloadError"><br>
+					<img src="/img/loading.gif" alt="Loading Gif" ng-hide="downloadSuccess || downloadError">
 				</div>
 				<div class="col-md-offset-1 col-md-10 box text-center" ng-show="task.status == 'Converted'">
-					<h1>Your file is converted</h1>
+					<h1>Your file is converted !</h1>
 					<p>You can now download your file<p>
 					<p>Download button</p>
+				</div>
+				<div class="col-md-offset-1 col-md-10 box text-center" ng-show="task.status == 'inQueue'">
+					<h1>Your file is in queue for being converted</h1>
+					<p>Please, come back later<p>
+					<img src="/img/loading.gif" alt="Loading Gif" ng-hide="downloadSuccess || downloadError">
 				</div>
 			</div>
 		</div>

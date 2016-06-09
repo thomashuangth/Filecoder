@@ -475,21 +475,23 @@ router.get("/convert", isAuthenticated, function(req, res) {
 	console.log("[Route] GET Convert".cyan);
 });
 
-router.post("/converting", isAuthenticated, function(req, res) {
-	console.log("[Route] POST Convert".cyan);
-	console.log("\nConverting...");
+router.post("/converting", function(req, res) {
+	console.log("[Route] GET Converting".cyan);
 
-	var file = {
-		taskId : req.body._id,
-		filename: req.body.filename,
-		owner: req.user.email,
-		output: req.body.output, 
-		input: req.body.input,
-		duration: req.body.duration,
-		type: req.body.type
+	var file = queue = null;
+
+	if (req.body._id) {
+		var file = {
+			taskId : req.body._id,
+			filename: req.body.filename,
+			owner: req.user.email,
+			output: req.body.output, 
+			input: req.body.input,
+			duration: req.body.duration,
+			type: req.body.type
+		};
+		var queue = new Queue(file);
 	};
-
-	var queue = new Queue(file);
 
 	checkQueue(file, queue);
 
@@ -525,6 +527,8 @@ router.post("/converting", isAuthenticated, function(req, res) {
 									console.log("New task has been added in queue".green);
 								};
 							});
+
+							res.send("inQueue");
 						};	
 					});
 				} else {
@@ -551,6 +555,9 @@ router.post("/converting", isAuthenticated, function(req, res) {
 				if (file) {
 					console.log("\nFilecoding...");
 					filecode(file);	
+				} else {
+					console.log("Queue has been cleared !".green);
+					res.send("empty");
 				};
 			};
 		});
@@ -574,6 +581,7 @@ router.post("/converting", isAuthenticated, function(req, res) {
 
 		var cmd = "sleep 10 && ls";
 
+		console.log("NOW CONVERTING ".green + file.filename);
 		ssh.exec(cmd, {
 			out: function(stdout) {
 				console.log(stdout);
@@ -591,19 +599,21 @@ router.post("/converting", isAuthenticated, function(req, res) {
 						res.send(err);
 					} else {
 						console.log("Task removed from queue".green);
-						checkQueue();
+
+						//Change Tasks Status
+						Task.update({_id: file.taskId}, {status: "Converted"}, function(err){
+							if (err) {
+								console.log(err);
+								console.log("Can't update the converted task".red);
+							} else {
+								console.log("The task is now converted".green);
+								res.send("converted");
+							};
+						});
 					};
 				});
 
-				//Change Tasks Status
-				Task.update({_id: file.taskId}, {status: "Converted"}, function(err){
-					if (err) {
-						console.log(err);
-						console.log("Can't update the converted task".red);
-					} else {
-						console.log("The task is now converted".green);
-					};
-				});
+				
 			}
 		}).start();
 
