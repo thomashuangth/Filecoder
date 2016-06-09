@@ -60,9 +60,9 @@
 							
 						</li>
 						<li class="list-group-item task-control text-center" ng-repeat-end>
+							<a href="{{ task.path }}" download="{{ task.filename }}" target="_self" class="btn btn-control" ng-show="task.status == 'Converted'"><span class="glyphicon glyphicon-save"></span>Download</a>
 							<button class="btn btn-control" ng-click="convert(task._id, task.status)" ng-hide="task.status == 'Converted'"><span class="glyphicon glyphicon-flash"></span>Convert</button>
 							<button class="btn btn-control" ng-click="deleteTask(task._id)"><span class="glyphicon glyphicon-remove"></span>Delete</button>
-							<a href="{{ task.path }}" download="{{ task.filename }}" target="_self" class="btn btn-control" ng-show="task.status == 'Converted'"><span class="glyphicon glyphicon-save"></span>Download</a>
 						</li>
 					</ul>
 				</div>

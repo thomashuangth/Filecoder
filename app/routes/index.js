@@ -215,7 +215,7 @@ function paypalCreation(payment, req, res) {
 
 router.get("/task/get/:id", isAuthenticated, function(req, res) {
 
-	console.log("\n Getting one task...");
+	console.log("\nGetting one task...");
 	Task.findOne({_id: req.params.id}, function(err, task) {
 		if (err) {
 			console.log("Finding current task error".red);
@@ -559,8 +559,9 @@ router.post("/converting", isAuthenticated, function(req, res) {
 	function filecode(file) {
 
 		var ssh = new SSH({
-			host: '192.168.18.4',
-			user: 'Van'
+			host: '192.168.18.8',
+			user: 'osmc',
+			pass: 'osmc'
 		});
 
 		if (file.duration > 200) {
@@ -571,12 +572,15 @@ router.post("/converting", isAuthenticated, function(req, res) {
 			//SHELLJSSTUFF
 		};
 
-		var cmd = "ls";
+		var cmd = "sleep 10 && ls";
 
 		ssh.exec(cmd, {
 			out: function(stdout) {
 				console.log(stdout);
 			},
+			err: function(stderr) {
+		        console.log(stderr); // this-does-not-exist: command not found
+		    },
 			exit: function(code) {
 				console.log("========== EXIT ==========");
 				console.log(code);

@@ -613,14 +613,15 @@ mainController.controller('convertController', ['$scope', '$rootScope', '$http',
 		.success(function(data) {
 			$scope.task = data;
 
-			$http.post('/converting', $scope.task)
-				.success(function(data) {
-					$scope.status = "Converted";
-					console.log("Convert success");
-				})
-				.error(function(data) {
-					console.log("Convert error");
-				});
+			if ($scope.task.status != "Converted") {
+				$http.post('/converting', $scope.task)
+					.success(function(data) {
+						//$scope.status = "Converted";
+					})
+					.error(function(data) {
+					});
+			};
+				
 		})
 		.error(function(data) {
 			//$rootScope.errors.push("No task found");
