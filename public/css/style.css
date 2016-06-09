@@ -456,6 +456,11 @@ section.hero > div > div > div {
     cursor: pointer;
 }
 
+.pricing {
+	display: flex;
+	flex-direction: row;
+}
+
 .pay-choice {
 	margin: 25px 0;
 }
@@ -464,6 +469,31 @@ section.hero > div > div > div {
 	display: none;
 }
 
+.basic-plan {
+	background: #c7827a;
+	color: white;
+	border: none;
+
+}
+
+.pro-plan {
+	background: #AB5248;
+	color: white;
+	border: none;
+
+}
+
+.enterprise-plan {
+	background: #96281B;
+	color: white;
+	border: none;
+
+}
+
+.price {
+	font-size: 24px;
+	font-weight: bold;
+}
 
 /* ANIMATIONS */
 
@@ -583,6 +613,10 @@ section.hero > div > div > div {
 		display: inline;
 	}
 
+	.pricing {
+		display: inline-block;
+	}
+
 }
 
 @media (max-width: 480px) {
@@ -591,7 +625,7 @@ section.hero > div > div > div {
 	}
 
 	h2 {
-		font-size: 18px;
+		font-size: 20px;
 	}
 
 	p {

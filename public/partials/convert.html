@@ -2,10 +2,11 @@
 	<section>
 		<div class="container">
 			<div class="row">
-				<div class="col-md-offset-1 col-md-10 box">
-					<h1>Converting</h1>
+				<div class="col-md-offset-1 col-md-10 box text-center">
+					<h1>Converting...</h1>
 					<p>Your file <span class="montserrat color">{{ task.name }}</span> is converting, please wait until the process is finished...</p>
 					<p>Meanwhile, you can convert more files</p>
+					<img src="/img/loading.gif" alt="Loading Gif" ng-hide="downloadSuccess || downloadError"><br>
 					
 				</div>
 			</div>

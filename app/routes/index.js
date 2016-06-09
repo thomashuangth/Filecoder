@@ -391,6 +391,7 @@ router.post("/download/url", function(req, res) {
 			console.log("Good URL".green);
 			checkDirectorySync(config.storageServer + "uploads");
 			checkDirectorySync(config.storageServer + "uploads/guest");
+			checkDirectorySync(config.storageServer + "uploads/" + req.body.username);
 
 			checkFileExist(filename, oldFilename, req.body.username, copyNumber, req, res, function(filename) {
 				download(req.body.url, config.storageServer + "uploads/" + req.body.username + "/" + encodeURI(filename));
@@ -437,7 +438,6 @@ router.post("/download/url", function(req, res) {
 			file.on('finish', function() {
 		  		file.close(cb);  // close() is async, call cb after close completes.
 		  		var stats = fs.statSync(config.storageServer + "uploads/" + req.body.username + "/" + encodeURI(filename));
-				console.log(stats);
 		  		res.json(stats);
 			});
 		}).on('error', function(err) { // Handle errors
@@ -559,10 +559,9 @@ router.post("/converting", isAuthenticated, function(req, res) {
 	function filecode(file) {
 
 		var ssh = new SSH({
-			host: '192.168.18.10',
-			user: 'pi',
-			pass: 'caca1234'
-		})
+			host: '192.168.18.4',
+			user: 'Van'
+		});
 
 		if (file.duration > 200) {
 			console.log("Duration + 200");
