@@ -328,9 +328,7 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 				$('.file-preview').html("<video src='" + $scope.url + "' controls></video>");
 				
 				if (input != "AVI" && input != "TS") {
-					$('.file-preview').slideDown(200, function() {
-						$scope.task.duration = $('.file-preview video').get(0).duration;
-					});
+					$('.file-preview').slideDown(200);
 				};
 
 			} else if (audioFormats.indexOf(input) >= 0) {
@@ -339,9 +337,7 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 				$('.file-preview').html("<audio src='" + $scope.url + "' controls></audio>");
 
 				if (input != "AVI" && input != "TS") {
-					$('.file-preview').slideDown(200, function() {
-						$scope.task.duration = $('.file-preview audio').get(0).duration;
-					});
+					$('.file-preview').slideDown(200);
 				};
 
 			} else {
@@ -382,11 +378,12 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 				return false;
 			};
 
-			$scope.file.filename = $scope.task.filename = "ENC_" + $scope.file.output + "_" + $scope.file.name;
+			$scope.file.filename = $scope.task.filename = $scope.file.name;
 			$scope.task.type = $scope.file.type.split('/')[0];
 			$scope.task.size = $('.inputFile').get(0).files[0].size;
 
 			if ($scope.task.input == "AVI" || $scope.task.input == "TS") {
+				$scope.task.duration = 101;
 				if($scope.upload_form.file.$valid) {
 					$('.uploadForm').slideUp(200, function() {
 						$('.upload-info').slideDown(200);
@@ -408,7 +405,17 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 				
 		} else if ($scope.url !== "undefined") {
 
+			if ($scope.isVideo) {
+				$scope.task.duration = $('.file-preview video').get(0).duration;
+			} else {
+				$scope.task.duration = $('.file-preview audio').get(0).duration;
+			};
+
 			$scope.task.input = ($scope.url.split('.')[$scope.url.split('.').length -1]).toUpperCase();
+
+			if ($scope.task.input == "AVI" || $scope.task.input == "TS") {
+				$scope.task.duration = 101;
+			};
 
 			//Check different input output
 			if ($scope.task.input == $scope.task.output) {
@@ -416,8 +423,7 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 				return false;
 			};
 
-			$scope.task.filename = "ENC_" + $scope.task.output + "_" + ($scope.url.split('/')[$scope.url.split('/').length -1]);
-			//$scope.createTask($scope.task);
+			$scope.task.filename = ($scope.url.split('/')[$scope.url.split('/').length -1]);
 
 			var username = "guest";
 			if ($rootScope.isLoggedIn) {
@@ -494,6 +500,7 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 			.success(function(data) {
 				$rootScope.infos.push("Task created");
 				$scope.tasks = data;
+				$location.path('/tasks');
 			})
 			.error(function(data) {
 				$rootScope.errors.push("Task not created");
@@ -527,12 +534,11 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 
 		function checkStatus(taskId, taskStatus) {
 			$rootScope.currentTask = taskId;
-			/*if (taskStatus == "Paid") {
+			if (taskStatus == "Paid") {
 				$location.path('/convert');
 			} else {
 				$location.path('/pay');
-			};*/
-			$location.path('/convert');
+			};
 		}
 	};
 
@@ -611,6 +617,7 @@ mainController.controller('convertController', ['$scope', '$rootScope', '$http',
 
 	$http.get('/task/get/' + $rootScope.currentTask)
 		.success(function(data) {
+			data.name = decodeURI(data.name);
 			$scope.task = data;
 
 			if ($scope.task.status != "Converted") {

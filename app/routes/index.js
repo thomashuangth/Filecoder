@@ -239,6 +239,15 @@ router.get("/task/get", isAuthenticated, function(req, res) {
 
 router.post("/task/create", isAuthenticated, function(req, res) {
 	console.log("\nCreating new task...");
+
+	var status = "Pending";
+	var paid = false;
+
+	if (req.body.input == "AVI" || req.body.input == "TS") {
+		status = "Paid";
+		paid = true;
+	};
+
 	var task = new Task({
 		owner: req.user.email, 
 		name: req.body.filename + " " + req.body.input + " to " + req.body.output, 
@@ -246,8 +255,12 @@ router.post("/task/create", isAuthenticated, function(req, res) {
 		input: req.body.input, 
 		type: req.body.type, 
 		filename: req.body.filename,
+		originalname: req.body.filename.split('.')[0],
 		duration: req.body.duration,
-		size: req.body.size
+		size: req.body.size,
+		status: status,
+		paid: paid,
+		path: config.storageServer + "converted/" + req.user.email + "/" + req.body.filename.split('.')[0] + "." + req.body.output.toLowerCase()
 	});
 
 	task.save(function(err){
@@ -321,9 +334,11 @@ function getTasksFromUser(email, res) {
 			res.send(err);
 
 
-		for (var i = 0; i < tasks.length; i++) {
-			tasks[i].path = "converted/" + tasks[i].owner + "/" + tasks[i].filename;
-		};
+		/*for (var i = 0; i < tasks.length; i++) {
+			tasks[i].filename = decodeURI(tasks[i].filename);
+			var originalname = tasks[i].filename.split('.')[0];
+			tasks[i].path = config.storageServer + "converted/" + tasks[i].owner + "/" + originalname + "." + tasks[i].output.toLowerCase();
+		};*/
 
 		res.json(tasks);
 	});
@@ -566,61 +581,91 @@ router.post("/converting", function(req, res) {
 	function filecode(file) {
 
 		var ssh = new SSH({
-			host: '192.168.18.8',
-			user: 'osmc',
-			pass: 'osmc'
+			host: config.ssh.host,
+			user: config.ssh.user,
+			pass: config.ssh.pass
 		});
 
-		if (file.duration > 200) {
-			console.log("Duration + 200");
-			//SHELLJSSTUFF
-		} else {
-			console.log("Duration - 200");
-			//SHELLJSSTUFF
-		};
+		var cmd = "sleep 5 && ls";
 
-		var cmd = "sleep 10 && ls";
+		/*var ssh = new SSH({
+			host: '192.168.75.40',
+			user: 'root',
+			pass: 'supinfo'
+		})
+		var cmd = "python brain.py " + file.owner + " " + file.filename + " " + file.output;
 
-		console.log("NOW CONVERTING ".green + file.filename);
-		ssh.exec(cmd, {
-			out: function(stdout) {
-				console.log(stdout);
-			},
-			err: function(stderr) {
-		        console.log(stderr); // this-does-not-exist: command not found
-		    },
-			exit: function(code) {
-				console.log("========== EXIT ==========");
-				console.log(code);
-
-				Queue.remove({taskId: file.taskId}, function(err){
-					if (err) {
-						console.log(err);
-						res.send(err);
-					} else {
-						console.log("Task removed from queue".green);
-
-						//Change Tasks Status
-						Task.update({_id: file.taskId}, {status: "Converted"}, function(err){
-							if (err) {
-								console.log(err);
-								console.log("Can't update the converted task".red);
-							} else {
-								console.log("The task is now converted".green);
-								res.send("converted");
-							};
-						});
-					};
-				});
-
-				
+		if (file.type == 'audio'){
+			cmd = cmd + " 1";
+		}
+		else
+		{		
+			if (file.duration > 200) {
+				cmd = cmd + " 8";
+			} 
+			else if (file.duration > 100) {
+				cmd = cmd + " 4";
 			}
-		}).start();
+			else if (file.duration > 50) {
+				cmd = cmd + " 3";
+			}
+			else if (file.duration > 20) {
+				cmd = cmd + " 2";
+			}
+			else {
+				cmd = cmd + " 1";
+			}
+		}*/
 
+		ssh.on('error', function(err) {
+			console.log("Connect SSH Manager 1 failed : ".red + err);
+		    ssh = new SSH({
+				host: config.ssh.host2,
+				user: config.ssh.user,
+				pass: config.ssh.pass
+			});
+			sshConnect(ssh, cmd);
+		});
 		
+		sshConnect(ssh, cmd);
 
-		//Change filename for download
+		function sshConnect(ssh, cmd) {
+			console.log("NOW CONVERTING ".green + file.filename);
+			ssh.exec(cmd, {
+				out: function(stdout) {
+					console.log(stdout);
+				},
+				err: function(stderr) {
+			        console.log(stderr); // this-does-not-exist: command not found
+			    },
+				exit: function(code) {
+					console.log("========== EXIT ==========");
+					console.log(code);
 
+					Queue.remove({taskId: file.taskId}, function(err){
+						if (err) {
+							console.log(err);
+							res.send(err);
+						} else {
+							console.log("Task removed from queue".green);
+
+							//Change Tasks Status
+							Task.update({_id: file.taskId}, {status: "Converted"}, function(err){
+								if (err) {
+									console.log(err);
+									console.log("Can't update the converted task".red);
+								} else {
+									console.log("The task is now converted".green);
+									res.send("converted");
+								};
+							});
+						};
+					});
+
+					
+				}
+			}).start();
+		}
 		
 	};
 

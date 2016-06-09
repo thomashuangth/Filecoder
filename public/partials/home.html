@@ -66,6 +66,7 @@
 						<button type="submit" class="btn btn-default btn-upload" ng-click="uploadCreate()">Upload</button>
 					</form>
 					<div class="upload-info">
+						<h2>We are uploading your file, please wait...</h2>
 						<div class="progress">
 							<div class="progress-bar montserrat" role="progressbar" aria-valuemin="0" aria-valuemax="100" ng-style="{width: progress}">
 								{{ progress }}
@@ -78,9 +79,10 @@
 						<a href="/register" class="btn btn-default" ng-hide="isLoggedIn" ng-click="clearMessage()">Register</a>
 					</div>	
 					<div class="download-info">
-						<h2 ng-hide="downloadSuccess || downloadError">We are checking your url<br>Please wait...</h2>
+						<h2 ng-hide="downloadSuccess || downloadError">We are checking your url and downloading the file<br>Please wait...</h2>
 						<h2 ng-show="downloadSuccess">Your file is downloaded</h2>
 						<h2 ng-show="downloadError">Your URL is not correct, try again</h2>
+						<p ng-hide="isLoggedIn">You file has been uploaded but you must be registered in order to continue</p>
 						<img src="/img/loading.gif" alt="Loading Gif" ng-hide="downloadSuccess || downloadError"><br>
 						<button class="btn btn-cancel" ng-show="isLoggedIn && (downloadSuccess || downloadError)" ng-click="clearMessage()">Upload again</button>
 						<a href="/tasks" class="btn btn-default" ng-show="isLoggedIn && downloadSuccess" >My tasks</a>
@@ -104,17 +106,22 @@
 					<h2 class="latest-tasks">Latest Tasks</h2>
 
 					<ul class="list-group tasks-list">
-						<li class="list-group-item task" ng-repeat-start="task in tasks | orderBy:searchFilter:(searchOrder == null ? searchOrder : true) | filter:{ filename: searchTask } | filter:{ status: searchStatus } | filter:{ type: searchType }">
+						<li class="list-group-item task" ng-repeat-start="task in tasks | orderBy:searchFilter:(searchOrder == null ? searchOrder : true) | filter:{ filename: searchTask } | filter:{ status: searchStatus } | filter:{ type: searchType } | limitTo: 3">
 							<span class="badge pull-left">{{ task.status }}</span>
 							<span class="content">{{ task.filename }} [{{ task.input }} to {{ task.output }}]</span>
-							<span class="pull-right">
-								<span class="badge badge-2 pull-left">{{ task.size | bytes }}</span> 
+							<span class="pull-right unfold">
+								<span class="glyphicon glyphicon-chevron-down"></span>
+							</span>
+							<span class="pull-right task-info">
+								<span class="badge badge-2 pull-left" ng-show="task.size">{{ task.size | bytes }}</span> 
 								<span class="badge badge-2 pull-left">{{ task.type | uppercase }}</span>
 								{{ task.date | date: 'yyyy-MM-dd HH:mm:ss' }}
 							</span>
+							
 						</li>
 						<li class="list-group-item task-control text-center" ng-repeat-end>
-							<button class="btn btn-control" ng-click="convert(task._id, task.status)"><span class="glyphicon glyphicon-flash"></span>Convert</button>
+							<a href="{{ task.path }}" download="{{ task.originalname + '.' + task.output }}" target="_self" class="btn btn-control" ng-show="task.status == 'Converted'"><span class="glyphicon glyphicon-save"></span>Download</a>
+							<button class="btn btn-control" ng-click="convert(task._id, task.status)" ng-hide="task.status == 'Converted'"><span class="glyphicon glyphicon-flash"></span>Convert</button>
 							<button class="btn btn-control" ng-click="deleteTask(task._id)"><span class="glyphicon glyphicon-remove"></span>Delete</button>
 						</li>
 					</ul>

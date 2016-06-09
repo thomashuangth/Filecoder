@@ -10,5 +10,12 @@ module.exports = {
 	'paypal' : {
 		'client_id'		: 'AXwGfKoKJxre0qqLXflMwqHWRNh3a1eyln7DuLYbOlSiU5T8F7dJEZaJsrvmFWXAbowBGTXscEkEHexJ',
 		'client_secret'	: 'EMYmCkiUvo0n2gPV2je8c0lYZX-C6kCt0_513UVeu9tTkLCQ9PtfZ_Qo4jB8z3ReB3RO84oEka0CmVVz'
+	},
+
+	'ssh' : {
+		'host'			: '192.168.18.8',
+		'host2'			: '192.168.18.8',
+		'user'			: 'osmc',
+		'pass'			: 'osmc'
 	}
 }
