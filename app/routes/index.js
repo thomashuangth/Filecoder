@@ -260,7 +260,7 @@ router.post("/task/create", isAuthenticated, function(req, res) {
 		size: req.body.size,
 		status: status,
 		paid: paid,
-		path: config.storageServer + "converted/" + req.user.email + "/" + req.body.filename.split('.')[0] + "." + req.body.output.toLowerCase()
+		path: "nfs/converted/" + req.user.email + "/" + req.body.filename.split('.')[0] + "." + req.body.output.toLowerCase()
 	});
 
 	task.save(function(err){
@@ -499,6 +499,7 @@ router.post("/converting", function(req, res) {
 		var file = {
 			taskId : req.body._id,
 			filename: req.body.filename,
+			path: req.body.path,
 			owner: req.user.email,
 			output: req.body.output, 
 			input: req.body.input,
@@ -656,6 +657,7 @@ router.post("/converting", function(req, res) {
 									console.log("Can't update the converted task".red);
 								} else {
 									console.log("The task is now converted".green);
+									sendEmail(file.owner, file.path);
 									res.send("converted");
 								};
 							});
@@ -669,19 +671,20 @@ router.post("/converting", function(req, res) {
 		
 	};
 
-	function sendEmail() {
+	function sendEmail(email, downloadLink) {
 		//Send mail
 		var transporter = nodemailer.createTransport('smtps://filecoder.transcode%40gmail.com:Supinf0pp@smtp.gmail.com');
 
+		var html = "<html style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0\'><head style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0\'><meta content=\"width=device-width\"style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0\'name=viewport><meta content=\"text\/html; charset=UTF-8\"style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0\'http-equiv=Content-Type><title style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0\'>Filecoder Team<\/title><body bgcolor=#f6f6f6 style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0;-webkit-font-smoothing:antialiased;height:100%;-webkit-text-size-adjust:none;width:100%!important\'><table style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:20px;width:100%\'class=body-wrap bgcolor=#f6f6f6><tr style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0\'><td style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0\'><td style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0 auto!important;padding:20px;border:1px solid #f0f0f0;clear:both!important;display:block!important;max-width:600px!important\'class=container bgcolor=#FFFFFF><div class=content style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0 auto;padding:0;display:block;max-width:600px\'><table style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0;width:100%\'><tr style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0\'><td style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0\'><p style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6em;margin:0;padding:0;font-weight:400;margin-bottom:10px\'>Hi there,<p style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6em;margin:0;padding:0;font-weight:400;margin-bottom:10px\'>Our team of workers have finished working on your file<h2 style=\'font-family:\"Helvetica Neue\",Helvetica,Arial,\"Lucida Grande\",sans-serif;font-size:28px;line-height:1.2em;margin:40px 0 10px;padding:0;color:#111;font-weight:200\'>Your can now download your file !<\/h2><p style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6em;margin:0;padding:0;font-weight:400;margin-bottom:10px\'>Just click the link below, log in, choose your video and download it.<table style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0;margin-bottom:10px;width:auto!important\'class=btn-primary border=0 cellpadding=0 cellspacing=0><tr style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0\'><td style=\'font-family:\"Helvetica Neue\",Helvetica,Arial,\"Lucida Grande\",sans-serif;font-size:14px;line-height:1.6em;margin:0;padding:0;background-color:#348eda;border-radius:25px;text-align:center;vertical-align:top\'><a href='http://filecoder.com/" + downloadLink + "' style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:2;margin:0;padding:0;color:#fff;background-color:#348eda;border:solid 1px #348eda;border-radius:25px;border-width:10px 20px;display:inline-block;cursor:pointer;font-weight:700;text-decoration:none\'>Download your file here<\/a><\/table><p style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6em;margin:0;padding:0;font-weight:400;margin-bottom:10px\'>Thanks, have a lovely day.<p style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6em;margin:0;padding:0;font-weight:400;margin-bottom:10px\'><a href=http:\/\/www.filecoder.com style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0;color:#348eda\'>Filecoder<\/a><\/table><\/div><td style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0\'><\/table><table style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0;width:100%;clear:both!important\'class=footer-wrap><tr style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0\'><td style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0\'><td style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0 auto!important;padding:0;clear:both!important;display:block!important;max-width:600px!important\'class=container><div class=content style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0 auto;padding:0;display:block;max-width:600px\'><table style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0;width:100%\'><tr style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0\'><td style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0\'align=center><p style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6em;margin:0;padding:0;font-weight:400;margin-bottom:10px;color:#666\'>Don\\\'t like these annoying emails? <a href=# style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0;color:#999\'><unsubscribe style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0\'>Unsubscribe<\/unsubscribe><\/a>.<\/table><\/div><td style=\'font-family:\"Helvetica Neue\",Helvetica,Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0\'><\/table>"
 		// setup e-mail data with unicode symbols
 		var mailOptions = {
 		    from: '"Filecoder Team" <filecoder.transcode@filecoder.com>',
 		    to: 'thomashuang.th@gmail.com',
 		    subject: 'Your file conversion is complete !',
 		    text: 'Your file conversion is complete !',
-		    html: '<b>Your file is now available for download, you can click here or go to your tasks to download your converted file</b>'
+		    html: html
 		};
-
+		var test = '<a href="http://filecoder.com/"' + downloadLink + '>here</a>';
 		// send mail with defined transport object
 		transporter.sendMail(mailOptions, function(error, info){
 			if(error){
@@ -735,7 +738,7 @@ function checkDirectorySync(directory) {
 
 function checkFileExist(filename, oldFilename, username, copyNumber, req, res, callback) {
 	if (copyNumber != 1) {
-		filename = "(" + copyNumber + ")" + filename;
+		filename = filename.split(".")[0] + "_" + copyNumber + "." + filename.split(".").pop();
 	};
 
 	//Check if the file exist, Yes => Create a second, No => Just create

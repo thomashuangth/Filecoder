@@ -7,6 +7,7 @@ var QueueSchema = new mongoose.Schema({
     input       : String,
     output      : String,
     filename    : String,
+    path        : String,
     type        : String,
     path        : String,
     date 		: { type: Date, default: Date.now },

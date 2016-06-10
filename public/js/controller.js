@@ -159,6 +159,11 @@ mainController.controller('authenticationController', ['$scope', '$rootScope', '
 				expired.setDate(today.getDate() + 1); //Set expired date to tomorrow
 				$cookies.putObject('FCCurrentUser', data, {expire : expired });
 
+				if ($cookies.getObject('FCGuestTask')) {
+					$rootScope.createTask($cookies.getObject('FCGuestTask'));
+					$cookies.remove('FCGuestTask');
+				};
+
 				$location.path('/');
 			})
 			.error(function(data) {
@@ -183,6 +188,11 @@ mainController.controller('authenticationController', ['$scope', '$rootScope', '
 				expired.setDate(today.getDate() + 1); //Set expired date to tomorrow
 				$cookies.putObject('FCCurrentUser', data, {expire : expired });
 
+				if ($cookies.getObject('FCGuestTask')) {
+					$rootScope.createTask($cookies.getObject('FCGuestTask'));
+					$cookies.remove('FCGuestTask');
+				};
+
 				$location.path('/');
 			})
 			.error(function(data) {
@@ -192,7 +202,7 @@ mainController.controller('authenticationController', ['$scope', '$rootScope', '
 
 }]);
 
-mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'Upload', '$location', '$cookies', function($scope, $rootScope, $http, Upload, $location, $cookies) {
+mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'Upload', '$location', '$cookies', '$routeParams', function($scope, $rootScope, $http, Upload, $location, $cookies, $routeParams) {
 
 	if ($rootScope.isLoggedIn) {
 		$http.get('/task/get')
@@ -205,6 +215,10 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 
 		$scope.videoPreview = $('.file-preview video');
 		$scope.audioPreview = $('.file-preview audio');
+	};
+
+	if ($routeParams.create == "success") {
+		$rootScope.infos.push("Task created");
 	};
 
 	$('.start').click(function() {
@@ -317,6 +331,7 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 			var audioFormats = ["MP3", "AAC", "AIFF", "FLAC", "M4A", "OGG", "WAV", "WMA"];
 
 			$scope.task = {};
+
 
 			var input = ($scope.url.split('.')[$scope.url.split('.').length -1]).toUpperCase();
 			if (input != "AVI" && input != "TS") {
@@ -498,9 +513,8 @@ mainController.controller('taskController', ['$scope', '$rootScope', '$http', 'U
 	$rootScope.createTask = function(task) {
 		$http.post('/task/create', task)
 			.success(function(data) {
-				$rootScope.infos.push("Task created");
 				$scope.tasks = data;
-				$location.path('/tasks');
+				$location.path('/tasks').search({create: 'success'});;
 			})
 			.error(function(data) {
 				$rootScope.errors.push("Task not created");

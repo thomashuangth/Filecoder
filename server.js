@@ -15,23 +15,16 @@
 	var colors = require('colors');
 
 	var config = require('./app/config');
+
+	var mongoServer = 'mongodb://' + config.mongoServer + '/' + config.databaseName/* + ',mongodb://' + config.mongoServer2 + ',mongodb://' + config.mongoServer3 + "/?replicaSet=myreplica"*/;
 	
-	var mongoServer = config.mongoServer;
-	var serverNumber = 1;
-
-	connectDB(mongoServer);
-
-	function connectDB(mongoServer) {
-		mongoose.connect('mongodb://' + config.mongoServer + '/' + config.databaseName, function(err){
-			if (err) {
-				console.log('[/] Mongo DB connection error, trying another one...'.red);	
-				serverNumber++;
-				connectDB(mongoServer+serverNumber)
-			} else {
-				console.log('[x] Mongo DB connection succesful !'.green);		
-			};
-		})
-	};
+	mongoose.connect(mongoServer, function(err){
+		if (err) {
+			console.log('[/] Mongo DB connection error, trying another one...'.red);	
+		} else {
+			console.log('[x] Mongo DB connection succesful !'.green);		
+		};
+	})
 	
 	require('./app/passport')(app);
 

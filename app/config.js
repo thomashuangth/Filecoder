@@ -1,10 +1,10 @@
 module.exports = {
-	'serverPort'		: '3000', 				/* 80 */
+	'serverPort'		: '80', 				/* 80 */
 	'mongoServer' 		: '127.0.0.1',			/* 192.168.X.X */
 	'mongoServer2' 		: '127.0.0.1',			/* 192.168.X.X */
 	'mongoServer3' 		: '127.0.0.1',			/* 192.168.X.X */
-	'databaseName' 		: 'transcoder',			/* transcoder */
-	'domain'			: 'transcoder.com', 	/* Don't forget to change Social Network Callback URI */
+	'databaseName' 		: 'filecoder',			/* transcoder */
+	'domain'			: 'filecoder.com', 	/* Don't forget to change Social Network Callback URI */
 	'storageServer'		: 'public/',			/* /mnt/iscsi/ */
 
 	'paypal' : {

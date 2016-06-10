@@ -1,11 +1,11 @@
 module.exports = {
-	'serverPort'		: '3000', 				/* 80 */
-	'mongoServer' 		: '127.0.0.1',			/* 192.168.X.X */
-	'mongoServer2' 		: '127.0.0.1',			/* 192.168.X.X */
-	'mongoServer3' 		: '127.0.0.1',			/* 192.168.X.X */
-	'databaseName' 		: 'transcoder',			/* transcoder */
-	'domain'			: 'transcoder.com', 	/* Don't forget to change Social Network Callback URI */
-	'storageServer'		: 'public/',			/* /mnt/iscsi/ */
+	'serverPort'		: '80', 				/* 80 */
+	'mongoServer' 		: '192.168.75.70',			/* 192.168.X.X */
+	'mongoServer2' 		: '192.168.75.80',			/* 192.168.X.X */
+	'mongoServer3' 		: '192.168.75.90',			/* 192.168.X.X */
+	'databaseName' 		: 'filecoder',			/* transcoder */
+	'domain'			: 'filecoder.com', 	/* Don't forget to change Social Network Callback URI */
+	'storageServer'		: '/root/transcoder/public/nfs',			/* /mnt/iscsi/ */
 
 	'paypal' : {
 		'client_id'		: 'AXwGfKoKJxre0qqLXflMwqHWRNh3a1eyln7DuLYbOlSiU5T8F7dJEZaJsrvmFWXAbowBGTXscEkEHexJ',
@@ -13,9 +13,9 @@ module.exports = {
 	},
 
 	'ssh' : {
-		'host'			: '192.168.18.8',
-		'host2'			: '192.168.18.8',
-		'user'			: 'osmc',
-		'pass'			: 'osmc'
+		'host'			: '192.168.75.40',
+		'host2'			: '192.168.75.41',
+		'user'			: 'root',
+		'pass'			: 'supinfo'
 	}
 }

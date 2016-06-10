@@ -147,7 +147,6 @@ module.exports = function(app) {
 				return done(err);
 			};
 			if (user) {
-				console.log(user);
 				if (context == "facebook" && user.facebook.username ) {
 					console.log('Login Facebook successful ! (User '.green + profile.email + ') '.green  + new Date().toString().grey);
 					return done(null, user.facebook);
